@@ -289,6 +289,7 @@ function tlsProbe(ip: string, port: number, sniHost: string, timeoutMs: number):
       servername: sniHost,
       rejectUnauthorized: false,
       timeout: timeoutMs,
+      ALPNProtocols: ['h2', 'http/1.1'],
     }, () => {
       if (settled) return
       settled = true
@@ -341,10 +342,10 @@ function httpProbe(ip: string, port: number, host: string, timeoutMs: number): P
   })
 }
 
-// WebSocket upgrade test: ONLY accept 101 Switching Protocols.
-// 200/301/302 etc from CDN edges are false positives — the edge received
-// the request but did NOT actually upgrade the connection, so V2Ray/WS
-// traffic will fail. Only 101 confirms the IP truly routes WS for this SNI.
+// WebSocket upgrade test: sends a real WS upgrade handshake over TLS
+// with ALPN h2+http/1.1 to match what V2Ray/browser clients do.
+// CDN edges (CloudFront etc) may reject connections without proper ALPN.
+// Only 101 Switching Protocols counts as a true WS upgrade.
 function testWithConfig(
   ip: string,
   port: number,
@@ -365,7 +366,10 @@ function testWithConfig(
       'Connection': 'Upgrade',
       'Sec-WebSocket-Key': wsKey,
       'Sec-WebSocket-Version': '13',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      'Sec-WebSocket-Protocol': 'chat, superchat',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_window_bits',
     }
 
     const socket = isTls
@@ -375,6 +379,8 @@ function testWithConfig(
           servername: cfg.sni || cfg.address,
           rejectUnauthorized: false,
           timeout: timeoutMs,
+          // Match real client: negotiate h2 + http/1.1 like Chrome/V2Ray
+          ALPNProtocols: ['h2', 'http/1.1'],
         }, () => sendUpgrade())
       : net.connect({ host: ip, port, timeout: timeoutMs }, () => sendUpgrade())
 
@@ -398,23 +404,37 @@ function testWithConfig(
     }
 
     let buf = ''
-    socket.once('data', (data) => {
+    let dataTimer: ReturnType<typeof setTimeout> | null = null
+    const onData = (data: Buffer) => {
       buf += data.toString('utf8')
+      // Wait a bit for full response headers
+      if (dataTimer) clearTimeout(dataTimer)
+      dataTimer = setTimeout(() => parseResponse(), 200)
+    }
+
+    const parseResponse = () => {
       const headerEnd = buf.indexOf('\r\n\r\n')
-      if (headerEnd === -1) { finish(false); return }
+      if (headerEnd === -1) {
+        // If we got data but no complete headers yet, wait more
+        if (buf.length > 0 && buf.length < 4096) {
+          dataTimer = setTimeout(parseResponse, 300)
+          return
+        }
+        finish(false)
+        return
+      }
       const respHeaders = buf.slice(0, headerEnd)
       const firstLine = respHeaders.split('\r\n')[0] || ''
       const m = firstLine.match(/HTTP\/1\.[01]\s+(\d{3})/i)
       if (m) {
         status = parseInt(m[1], 10)
-        // ONLY 101 = true WebSocket upgrade accepted
-        // Everything else (200, 301, 302, 403, 404) means CDN did NOT upgrade
         finish(status === 101)
       } else {
         finish(false)
       }
-    })
+    }
 
+    socket.once('data', onData)
     socket.once('timeout', () => finish(false))
     socket.once('error', () => finish(false))
   })
