@@ -67,6 +67,7 @@ export function ScannerShell() {
           maxLatencyMs: config.maxLatencyMs,
           selectedRanges: config.selectedRanges,
           realPing: config.realPing,
+          scanAllIps: config.scanAllIps,
         },
         config.customIpList,
         sampleConfigText || undefined,  // pass sample config text

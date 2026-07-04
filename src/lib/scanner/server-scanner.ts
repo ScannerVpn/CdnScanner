@@ -102,9 +102,10 @@ export async function runScan(
     const selectedSet = config.selectedRanges && config.selectedRanges.length > 0
       ? new Set(config.selectedRanges)
       : null
+    const perRange = config.scanAllIps ? 999999 : config.maxIpsPerRange
     for (const r of platform.ranges) {
       if (selectedSet && !selectedSet.has(r.cidr)) continue
-      ipList = ipList.concat(cidrToIps(r.cidr, config.maxIpsPerRange))
+      ipList = ipList.concat(cidrToIps(r.cidr, perRange))
     }
   }
 

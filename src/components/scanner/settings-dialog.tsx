@@ -142,17 +142,37 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <div>
             <div className="flex items-center justify-between">
               <Label className="text-xs text-zinc-400">نمونه IP در هر CIDR</Label>
-              <span className="text-xs font-mono text-emerald-300">{config.maxIpsPerRange}</span>
+              <span className="text-xs font-mono text-emerald-300">
+                {config.scanAllIps ? 'همه' : config.maxIpsPerRange}
+              </span>
             </div>
-            <Slider
-              value={[config.maxIpsPerRange]}
-              onValueChange={(v) => updateConfig({ maxIpsPerRange: v[0] })}
-              min={4}
-              max={512}
-              step={4}
-              className="mt-2"
-            />
-            <p className="text-[11px] text-zinc-500 mt-1">برای هر رنج CIDR به این تعداد IP تصادفی تست میشه — هرچی بیشتر، پوشش بهتر</p>
+            {!config.scanAllIps && (
+              <Slider
+                value={[config.maxIpsPerRange]}
+                onValueChange={(v) => updateConfig({ maxIpsPerRange: v[0] })}
+                min={4}
+                max={512}
+                step={4}
+                className="mt-2"
+              />
+            )}
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={config.scanAllIps}
+                  onCheckedChange={(v) => updateConfig({ scanAllIps: v })}
+                  id="scanAllIps"
+                />
+                <Label htmlFor="scanAllIps" className="text-xs text-zinc-300 cursor-pointer">
+                  اسکن کل رنج (همه IP ها)
+                </Label>
+              </div>
+            </div>
+            <p className="text-[11px] text-zinc-500 mt-1">
+              {config.scanAllIps
+                ? 'تمام IP های هر رنج انتخاب شده اسکن میشه — کندتر ولی کامل‌تر'
+                : 'برای هر رنج CIDR به این تعداد IP تصادفی تست میشه'}
+            </p>
           </div>
 
           {/* Toggles */}

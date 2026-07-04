@@ -44,6 +44,7 @@ const DEFAULT_CONFIG: ScanConfig = {
   maxLatencyMs: 1500,
   realPing: true,
   selectedRanges: [],
+  scanAllIps: false,
 }
 
 import { create } from 'zustand'

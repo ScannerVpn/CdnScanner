@@ -32,6 +32,8 @@ export interface ScanConfig {
   realPing: boolean
   // NEW: sample config to test IPs against (parsed)
   sampleConfig?: ParsedConfig
+  // NEW: scan ALL IPs in each CIDR range (ignore maxIpsPerRange)
+  scanAllIps: boolean
 }
 
 export interface ScanResult {
