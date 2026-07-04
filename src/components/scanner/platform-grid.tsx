@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Cloud, FileText, Check, Server, Train, Smile, ChevronDown, ChevronUp, MapPin } from 'lucide-react'
 import { Platform, PlatformRange } from '@/lib/scanner/types'
+import { cidrToIpCount } from '@/lib/scanner/platforms'
 import { useScanner } from '@/lib/scanner/store'
 import { cn } from '@/lib/utils'
 
@@ -49,6 +50,15 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
     onSelect(id)
     setExpandedId(expandedId === id ? null : id)
     if (isHttp) onOpenHttpScanner()
+    // Auto-select all ranges when switching to a new platform
+    if (!isHttp && id !== selectedId) {
+      const platform = platforms.find(p => p.id === id)
+      if (platform && platform.ranges.length > 0) {
+        const platformCidrs = platform.ranges.map(r => r.cidr)
+        const others = selectedRanges.filter(r => !platformCidrs.includes(r))
+        setSelectedRanges([...others, ...platformCidrs])
+      }
+    }
   }
 
   // Toggle a single CIDR (preserve other-platform selections if any)
@@ -178,7 +188,17 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                   <p className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
                     {selectedCount === 0
                       ? 'همه رنج‌ها اسکن می‌شن — برای محدود کردن، چند رنج رو تیک بزن'
-                      : `فقط ${selectedCount} رنج انتخاب‌شده اسکن می‌شه`}
+                      : (() => {
+                          const totalIps = p.ranges
+                            .filter(r => selectedRanges.includes(r.cidr))
+                            .reduce((sum, r) => sum + cidrToIpCount(r.cidr), 0)
+                          const formatted = totalIps > 1000000
+                            ? `${(totalIps / 1000000).toFixed(1)}M`
+                            : totalIps > 1000
+                              ? `${(totalIps / 1000).toFixed(0)}K`
+                              : String(totalIps)
+                          return `فقط ${selectedCount} رنج انتخاب‌شده — ${formatted} IP`
+                        })()}
                   </p>
                 </div>
               )}

@@ -109,7 +109,7 @@ export async function runScan(
     }
   }
 
-  const HARD_CAP = 10000
+  const HARD_CAP = 50000
   if (ipList.length > HARD_CAP) ipList = ipList.slice(0, HARD_CAP)
 
   const total = ipList.length
