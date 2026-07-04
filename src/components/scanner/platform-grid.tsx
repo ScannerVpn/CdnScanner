@@ -102,7 +102,7 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
             <Card
               key={p.id}
               className={cn(
-                'relative border bg-[#0f141b] transition-all overflow-hidden',
+                'relative border bg-[#0f141b] transition-all',
                 isSelected ? `border-white/20 ring-1 ${c.ring}` : 'border-white/5',
               )}
             >
@@ -248,7 +248,7 @@ function RangeChip({ range, active, onToggle }: { range: PlatformRange; active: 
       )}>
         {active && <Check className="h-3 w-3" strokeWidth={3} />}
       </span>
-      <span className="flex-1 truncate" dir="ltr">{range.cidr}</span>
+      <span className="flex-1 whitespace-nowrap" dir="ltr">{range.cidr}</span>
       {range.region && (
         <span className="text-[10px] text-zinc-500 group-hover:text-zinc-400 flex items-center gap-0.5 shrink-0">
           <MapPin className="h-2.5 w-2.5" /> {range.region}
