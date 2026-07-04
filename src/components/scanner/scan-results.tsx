@@ -77,7 +77,7 @@ export function ScanResults({ results, status, progress, sampleConfig }: ScanRes
           {sampleConfig && (
             <Badge variant="outline" className="border-violet-500/30 bg-violet-500/10 text-violet-300">
               <Sparkles className="h-3 w-3 ml-1" />
-              {results.filter(r => r.configOk).length} تست موفق
+              {results.filter(r => r.configOk).length} تست موفق ({results.filter(r => r.configOk && r.configStatus === 101).length} قطعی)
             </Badge>
           )}
           {status === 'scanning' && (
@@ -193,9 +193,15 @@ export function ScanResults({ results, status, progress, sampleConfig }: ScanRes
                     <td className="px-4 py-2.5">
                       {r.configOk ? (
                         <div className="flex items-center gap-1.5">
-                          <Badge variant="outline" className="border-violet-500/30 bg-violet-500/10 text-violet-300 text-[10px]">
-                            <Sparkles className="h-2.5 w-2.5 ml-1" />✓ موفق
-                          </Badge>
+                          {r.configStatus === 101 ? (
+                            <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[10px]">
+                              <Sparkles className="h-2.5 w-2.5 ml-1" />101 قطعی
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-300 text-[10px]">
+                              <Sparkles className="h-2.5 w-2.5 ml-1" />{r.configStatus || '?'}
+                            </Badge>
+                          )}
                           {r.configLatencyMs && (
                             <span className="text-[11px] text-zinc-500 font-mono">{r.configLatencyMs}ms</span>
                           )}

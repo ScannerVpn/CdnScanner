@@ -344,8 +344,15 @@ function httpProbe(ip: string, port: number, host: string, timeoutMs: number): P
 
 // WebSocket upgrade test: sends a real WS upgrade handshake over TLS
 // with ALPN h2+http/1.1 to match what V2Ray/browser clients do.
-// CDN edges (CloudFront etc) may reject connections without proper ALPN.
-// Only 101 Switching Protocols counts as a true WS upgrade.
+//
+// CDN edges (CloudFront etc) use JA3 fingerprinting — Node.js has a
+// different fingerprint than Chrome/V2Ray, so the CDN may reject the
+// upgrade (403) even though the IP correctly routes to the origin.
+// Therefore we accept ANY HTTP response as "config reachable":
+//   101 = perfect WS upgrade
+//   2xx/3xx = server responded, IP routes to origin
+//   4xx = CDN knows the domain but rejects our fingerprint
+// Only connection-refused/timeout means the IP is truly dead.
 function testWithConfig(
   ip: string,
   port: number,
@@ -379,7 +386,6 @@ function testWithConfig(
           servername: cfg.sni || cfg.address,
           rejectUnauthorized: false,
           timeout: timeoutMs,
-          // Match real client: negotiate h2 + http/1.1 like Chrome/V2Ray
           ALPNProtocols: ['h2', 'http/1.1'],
         }, () => sendUpgrade())
       : net.connect({ host: ip, port, timeout: timeoutMs }, () => sendUpgrade())
@@ -407,15 +413,13 @@ function testWithConfig(
     let dataTimer: ReturnType<typeof setTimeout> | null = null
     const onData = (data: Buffer) => {
       buf += data.toString('utf8')
-      // Wait a bit for full response headers
       if (dataTimer) clearTimeout(dataTimer)
-      dataTimer = setTimeout(() => parseResponse(), 200)
+      dataTimer = setTimeout(parseResponse, 150)
     }
 
     const parseResponse = () => {
       const headerEnd = buf.indexOf('\r\n\r\n')
       if (headerEnd === -1) {
-        // If we got data but no complete headers yet, wait more
         if (buf.length > 0 && buf.length < 4096) {
           dataTimer = setTimeout(parseResponse, 300)
           return
@@ -428,7 +432,9 @@ function testWithConfig(
       const m = firstLine.match(/HTTP\/1\.[01]\s+(\d{3})/i)
       if (m) {
         status = parseInt(m[1], 10)
-        finish(status === 101)
+        // Accept any HTTP response — the IP reached the CDN origin.
+        // 101 = confirmed WS, 4xx = CDN blocked our fingerprint but IP routes correctly.
+        finish(true)
       } else {
         finish(false)
       }
