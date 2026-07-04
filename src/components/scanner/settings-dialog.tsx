@@ -148,11 +148,11 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               value={[config.maxIpsPerRange]}
               onValueChange={(v) => updateConfig({ maxIpsPerRange: v[0] })}
               min={4}
-              max={256}
+              max={512}
               step={4}
               className="mt-2"
             />
-            <p className="text-[11px] text-zinc-500 mt-1">برای هر رنج CIDR به این تعداد IP تصادفی تست میشه</p>
+            <p className="text-[11px] text-zinc-500 mt-1">برای هر رنج CIDR به این تعداد IP تصادفی تست میشه — هرچی بیشتر، پوشش بهتر</p>
           </div>
 
           {/* Toggles */}

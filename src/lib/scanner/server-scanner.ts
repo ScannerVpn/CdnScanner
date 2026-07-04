@@ -108,7 +108,7 @@ export async function runScan(
     }
   }
 
-  const HARD_CAP = 5000
+  const HARD_CAP = 10000
   if (ipList.length > HARD_CAP) ipList = ipList.slice(0, HARD_CAP)
 
   const total = ipList.length
@@ -340,8 +340,10 @@ function httpProbe(ip: string, port: number, host: string, timeoutMs: number): P
   })
 }
 
-// WebSocket upgrade test: only accept responses that confirm the IP
-// actually routes to a working backend for this config.
+// WebSocket upgrade test: ONLY accept 101 Switching Protocols.
+// 200/301/302 etc from CDN edges are false positives — the edge received
+// the request but did NOT actually upgrade the connection, so V2Ray/WS
+// traffic will fail. Only 101 confirms the IP truly routes WS for this SNI.
 function testWithConfig(
   ip: string,
   port: number,
@@ -377,7 +379,6 @@ function testWithConfig(
 
     let settled = false
     let status = 0
-    let respHeaders = ''
     const finish = (ok: boolean) => {
       if (settled) return
       settled = true
@@ -400,21 +401,14 @@ function testWithConfig(
       buf += data.toString('utf8')
       const headerEnd = buf.indexOf('\r\n\r\n')
       if (headerEnd === -1) { finish(false); return }
-      respHeaders = buf.slice(0, headerEnd)
+      const respHeaders = buf.slice(0, headerEnd)
       const firstLine = respHeaders.split('\r\n')[0] || ''
       const m = firstLine.match(/HTTP\/1\.[01]\s+(\d{3})/i)
       if (m) {
         status = parseInt(m[1], 10)
-        // 101 = WebSocket upgrade accepted — perfect
-        // 200-299 = server responded normally (may not support WS but IP routes correctly)
-        // 3xx redirects are common from CDN edges — still useful
-        // 4xx = path/auth error — IP may still route but reject non-WS
-        // Only accept if status is 101, 2xx, or 3xx
-        if (status === 101 || (status >= 200 && status < 400)) {
-          finish(true)
-        } else {
-          finish(false)
-        }
+        // ONLY 101 = true WebSocket upgrade accepted
+        // Everything else (200, 301, 302, 403, 404) means CDN did NOT upgrade
+        finish(status === 101)
       } else {
         finish(false)
       }

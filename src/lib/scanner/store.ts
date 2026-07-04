@@ -37,7 +37,7 @@ const DEFAULT_CONFIG: ScanConfig = {
   ports: [443, 80],
   timeoutMs: 3000,
   concurrency: 50,
-  maxIpsPerRange: 64,
+  maxIpsPerRange: 128,
   checkTls: true,
   checkHttp: true,
   sniHost: 'speedtest.net',
