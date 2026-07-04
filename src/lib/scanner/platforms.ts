@@ -324,7 +324,7 @@ export const PLATFORMS: Platform[] = [
     color: 'yellow',
     icon: 'face',
     ranges: [
-      // HF uses CloudFront globally + AWS eu-west-1 (Ireland)
+      // HF uses CloudFront globally + AWS regions
       { cidr: '18.65.0.0/17', region: 'CloudFront EMEA' },
       { cidr: '18.65.128.0/18', region: 'CloudFront EMEA' },
       { cidr: '99.86.0.0/16', region: 'CloudFront Global' },
@@ -332,7 +332,11 @@ export const PLATFORMS: Platform[] = [
       { cidr: '52.84.0.0/15', region: 'CloudFront Global' },
       { cidr: '13.32.0.0/15', region: 'CloudFront Global' },
       { cidr: '108.138.0.0/15', region: 'CloudFront Global' },
-      // EC2 eu-west-1 (Ireland) for HF Hub backend
+      // AWS us-east-1 (Virginia) — HF Inference API + Endpoints
+      { cidr: '44.192.0.0/11', region: 'AWS us-east-1' },
+      { cidr: '34.192.0.0/12', region: 'AWS us-east-1' },
+      { cidr: '3.216.0.0/14', region: 'AWS us-east-1' },
+      // AWS eu-west-1 (Ireland) for HF Hub backend
       { cidr: '3.5.0.0/16', region: 'AWS eu-west-1' },
       { cidr: '54.78.0.0/16', region: 'AWS eu-west-1' },
       { cidr: '52.16.0.0/15', region: 'AWS eu-west-1' },
