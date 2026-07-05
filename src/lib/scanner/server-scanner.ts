@@ -342,12 +342,17 @@ function httpProbe(ip: string, port: number, host: string, timeoutMs: number): P
   })
 }
 
-// Config test: connects via TLS with the sample config's SNI.
-// If TLS handshake succeeds, the IP routes to the correct CDN origin
-// for this domain — that's all we need to know. We do NOT wait for an
-// HTTP response because CDN edges (Cloudflare) use JA3 fingerprinting
-// and may close the connection after TLS based on Node.js's fingerprint,
-// even though the same IP works fine with Chrome/V2Ray.
+// Config test: TLS handshake + HTTP request with the sample config's SNI/Host.
+// Two-phase validation:
+//   Phase 1: TLS handshake with config SNI → proves CDN knows this domain
+//   Phase 2: HTTP HEAD with config Host → proves CDN routes to the origin
+//
+// For Cloudflare Workers: both phases succeed on all edges
+// For CloudFront/Hugging Face: TLS succeeds everywhere, but HTTP only on
+//   edges that have the origin configured. This filters out false positives.
+//
+// We accept HTTP 1xx-4xx as "origin reachable". Only 5xx and timeouts
+// mean the edge doesn't route to this origin.
 function testWithConfig(
   ip: string,
   port: number,
@@ -359,7 +364,6 @@ function testWithConfig(
     const isTls = port === 443 || cfg.security === 'tls'
 
     if (!isTls) {
-      // Non-TLS: TCP connect is enough
       const socket = net.connect({ host: ip, port, timeout: timeoutMs }, () => {
         socket.destroy()
         resolve({ ok: true, latencyMs: Date.now() - t0, status: 0 })
@@ -370,13 +374,19 @@ function testWithConfig(
     }
 
     let settled = false
+    let status = 0
     const finish = (ok: boolean) => {
       if (settled) return
       settled = true
-      resolve({ ok, latencyMs: Date.now() - t0, status: ok ? 101 : 0 })
+      clearTimeout(deadline)
+      if (respTimer) clearTimeout(respTimer)
+      resolve({ ok, latencyMs: Date.now() - t0, status })
     }
 
-    // TLS handshake with the config's SNI — if it succeeds, IP routes correctly
+    const wsPath = cfg.path || '/'
+    const wsHost = cfg.host || cfg.sni || cfg.address
+
+    // Phase 1: TLS handshake
     const socket = tls.connect({
       host: ip,
       port,
@@ -385,13 +395,57 @@ function testWithConfig(
       timeout: timeoutMs,
       ALPNProtocols: ['h2', 'http/1.1'],
     }, () => {
-      // TLS handshake succeeded — the CDN knows this domain for this IP
-      // No need to send WS upgrade or wait for HTTP (JA3 will block it)
-      socket.destroy()
-      finish(true)
+      // Phase 2: Send HTTP HEAD request over the TLS connection
+      const req = [
+        `HEAD ${wsPath} HTTP/1.1`,
+        `Host: ${wsHost}`,
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept: */*',
+        'Connection: close',
+        '',
+        '',
+      ].join('\r\n')
+      socket.write(req)
     })
 
-    socket.once('timeout', () => { socket.destroy(); finish(false) })
-    socket.once('error', () => { socket.destroy(); finish(false) })
+    let buf = ''
+    let respTimer: ReturnType<typeof setTimeout> | null = null
+    // Hard deadline: don't let one IP block the whole scan
+    const deadline = setTimeout(() => {
+      if (!settled) finish(true) // TLS succeeded, accept as reachable
+    }, timeoutMs + 1000)
+    const parseResponse = () => {
+      const headerEnd = buf.indexOf('\r\n\r\n')
+      if (headerEnd === -1) {
+        if (buf.length > 0 && buf.length < 4096) {
+          respTimer = setTimeout(parseResponse, 500)
+          return
+        }
+        // No HTTP response but TLS succeeded — might be JA3 blocked
+        // Accept as reachable (CDN knows the domain via TLS SNI)
+        finish(true)
+        return
+      }
+      const resp = buf.slice(0, headerEnd)
+      const firstLine = resp.split('\r\n')[0] || ''
+      const m = firstLine.match(/HTTP\/1\.[01]\s+(\d{3})/i)
+      if (m) {
+        status = parseInt(m[1], 10)
+        // 101-4xx = origin is reachable (CDN routed the request)
+        // 5xx = server error / origin not configured for this edge
+        finish(status < 500)
+      } else {
+        finish(true) // got data, TLS worked
+      }
+    }
+
+    socket.once('data', (data: Buffer) => {
+      buf += data.toString('utf8')
+      if (respTimer) clearTimeout(respTimer)
+      respTimer = setTimeout(parseResponse, 150)
+    })
+
+    socket.once('timeout', () => { if (!settled) finish(false) })
+    socket.once('error', () => { if (!settled) finish(false) })
   })
 }
