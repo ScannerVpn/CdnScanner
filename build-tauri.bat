@@ -1,50 +1,62 @@
 @echo off
 cd /d "%~dp0"
-title Build SNI Scanner EXE with Tauri
+title Build SNI Scanner EXE
 
 echo ============================================
-echo  SNI Scanner - Build Windows EXE (Tauri)
+echo  SNI Scanner - Build Windows EXE
 echo ============================================
 echo.
-echo NOTE: The EXE needs Node.js installed on the target PC.
-echo       For a standalone app, use start-tauri.bat instead.
+echo Prerequisites: Node.js 18+, Rust, VS C++ Build Tools
 echo.
 pause
 
+:: Step 1: Install packages
 echo.
-echo [1/2] Installing packages...
+echo [1/3] Installing packages...
 call npm install --no-audit --no-fund
-if errorlevel 1 (
+if %errorlevel% neq 0 (
+    echo.
     echo ERROR: npm install failed.
-    goto :end
+    echo.
+    pause
+    exit /b 1
 )
+echo OK.
 
+:: Step 2: Remove API routes (conflict with static export)
 echo.
-echo [2/2] Building...
+echo [2/3] Preparing build...
+if not exist "src\app\api" goto :skip_backup
+if exist "src\app\_api_backup" rmdir /s /q "src\app\_api_backup"
+xcopy /s /e /q /i "src\app\api" "src\app\_api_backup\" >nul
+rmdir /s /q "src\app\api"
+echo API routes backed up and removed.
+:skip_backup
+
+:: Step 3: Build with Tauri
 echo.
+echo [3/3] Building EXE (first time: 5-15 min)...
+echo.
+npx tauri build
+set TAURI_EXIT=%errorlevel%
 
-:: Remove API routes for static build
-if exist "src\app\api" (
-    if exist "src\app\_api_backup" rmdir /s /q "src\app\_api_backup"
-    xcopy /s /e /q /i "src\app\api" "src\app\_api_backup\" >nul
-    rmdir /s /q "src\app\api"
-    echo API routes backed up.
-)
-
-call npx tauri build
-
-:: Restore API
+:: Always restore API
 if exist "src\app\_api_backup" (
     xcopy /s /e /q /i "src\app\_api_backup" "src\app\api\" >nul
     rmdir /s /q "src\app\_api_backup"
+    echo.
     echo API routes restored.
 )
 
-:end
+:: Report result
 echo.
 echo ============================================
-if %errorlevel% neq 0 (
-    echo  BUILD FAILED - check errors above
+if %TAURI_EXIT% neq 0 (
+    echo  BUILD FAILED - see errors above
+    echo.
+    echo  Common fixes:
+    echo   - Install Rust: https://rustup.rs
+    echo   - Install VS C++ Build Tools
 ) else (
     echo  BUILD SUCCESSFUL!
     echo.
