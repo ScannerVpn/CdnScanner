@@ -49,9 +49,17 @@ build-portable.bat
 build-tauri.bat
 ```
 
-پیش‌نیازهای اضافی:
+این اسکریپت همه کار را خودکار انجام می‌دهد:
+1. `npm install` — وابستگی‌های Next.js
+2. `npm run build:static` — ساخت frontend به صورت static export در `out/`
+3. `npm run tauri:build` — کامپایل Rust و ساخت installer
+
+**نیازی به اسکریپت‌های جداگانه نیست.** build-tauri.bat یک فایل است.
+
+پیش‌نیازها:
+- [Node.js 18+](https://nodejs.org)
 - [Rust](https://rustup.rs)
-- [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+- [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (تیک "Desktop development with C++")
 
 ## CDN های پشتیبانی شده
 
@@ -89,20 +97,24 @@ build-tauri.bat
 
 ```
 ├── src/
-│   ├── app/api/scanner/     # API endpoints (SSE)
+│   ├── app/api/scanner/     # API endpoints (SSE) — نسخه وب
 │   ├── components/scanner/  # کامپوننت‌های React
 │   └── lib/scanner/
-│       ├── platforms.ts     # تعریف CDN ها و رنج IP
-│       ├── server-scanner.ts # موتور اسکن
-│       ├── types.ts         # تایپ‌ها
-│       ├── store.ts         # State management
-│       ├── sse-client.ts    # کلاینت SSE
-│       ├── sample-config.ts # پارسر لینک V2Ray
-│       └── export.ts        # تولید خروجی
-├── start-web.bat            # اجرای وب
-├── start-tauri.bat          # اجرای دسکتاپ
-├── build-portable.bat       # ساخت پکیج قابل حمل
-├── build-tauri.bat          # ساخت EXE
+│       ├── platforms.ts       # تعریف CDN ها و رنج IP
+│       ├── server-scanner.ts  # موتور اسکن سمت سرور (Node: net/tls/http/ICMP)
+│       ├── client-scanner.ts  # موتور اسکن سمت مرورگر (fetch/WebSocket)
+│       ├── sse-client.ts      # رابط — auto-detect بک‌اند، fallback
+│       ├── types.ts           # تایپ‌ها
+│       ├── store.ts           # State management
+│       ├── sample-config.ts   # پارسر لینک V2Ray
+│       └── export.ts          # تولید خروجی
+├── start-web.bat           # اجرای وب (dev)
+├── build.bat                # ساخت پکیج قابل حمل (Node standalone)
+├── build-tauri.bat          # ساخت EXE ویندوز (Tauri static)
+├── src-tauri/               # کد Rust Tauri
+│   ├── src/
+│   ├── tauri.conf.json
+│   └── icons/
 └── package.json
 ```
 

@@ -5,6 +5,7 @@ import { Platform, ScanProgress, ScanResult, ScanConfig, ParsedConfig } from './
 interface ScannerStore {
   connected: boolean
   platforms: Platform[]
+  scannerMode: 'server' | 'client' | 'unknown' // backend detected at runtime
   status: 'idle' | 'scanning' | 'stopped' | 'completed'
   selectedPlatformId: string
   progress: ScanProgress | null
@@ -17,6 +18,7 @@ interface ScannerStore {
 
   setConnected: (v: boolean) => void
   setPlatforms: (p: Platform[]) => void
+  setScannerMode: (m: 'server' | 'client') => void
   selectPlatform: (id: string) => void
   setStatus: (s: 'idle' | 'scanning' | 'stopped' | 'completed') => void
   setProgress: (p: ScanProgress | null) => void
@@ -52,6 +54,7 @@ import { create } from 'zustand'
 export const useScanner = create<ScannerStore>((set, get) => ({
   connected: false,
   platforms: [],
+  scannerMode: 'unknown',
   status: 'idle',
   selectedPlatformId: 'cloudflare',
   progress: null,
@@ -63,6 +66,7 @@ export const useScanner = create<ScannerStore>((set, get) => ({
 
   setConnected: (v) => set({ connected: v }),
   setPlatforms: (p) => set({ platforms: p }),
+  setScannerMode: (m) => set({ scannerMode: m }),
   selectPlatform: (id) => set((s) => ({
     selectedPlatformId: id,
     config: { ...s.config, platformId: id, selectedRanges: [] },

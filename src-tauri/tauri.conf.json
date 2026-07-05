@@ -22,7 +22,11 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "assetProtocol": {
+        "enable": true,
+        "scope": []
+      }
     }
   },
   "bundle": {
@@ -35,7 +39,6 @@
       "icons/icon.ico",
       "icons/icon.png"
     ],
-    "resources": ["../out/**/*"],
     "windows": {
       "webviewInstallMode": {
         "type": "downloadBootstrapper"

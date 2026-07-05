@@ -5,8 +5,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .setup(|_app| {
-            // For now, the app loads the dev URL or built static files
-            // When packaged, it loads from the bundled out/ directory
+            // Static frontend is loaded automatically from `frontendDist` (../out).
+            // The client-side scanner inside the webview does all the work —
+            // no Rust-side networking needed (browser fetch is enough).
             Ok(())
         })
         .run(tauri::generate_context!())

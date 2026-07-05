@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { useScanner } from '@/lib/scanner/store'
-import { startScan, stopScan, fetchPlatforms, ScanHandle } from '@/lib/scanner/sse-client'
+import { startScan, stopScan, fetchPlatforms, ScanHandle, hasServerScanner } from '@/lib/scanner/sse-client'
 import { StatusPanel } from './status-panel'
 import { StatsCards } from './stats-cards'
 import { PlatformGrid } from './platform-grid'
@@ -20,9 +20,9 @@ import { describeConfig } from '@/lib/scanner/sample-config'
 
 export function ScannerShell() {
   const {
-    connected, platforms, selectedPlatformId, status, progress, results, config, sessionId,
+    connected, platforms, scannerMode, selectedPlatformId, status, progress, results, config, sessionId,
     sampleConfig, sampleConfigText,
-    setConnected, setPlatforms, selectPlatform, setStatus, setProgress, addResult, clearResults,
+    setConnected, setPlatforms, setScannerMode, selectPlatform, setStatus, setProgress, addResult, clearResults,
     setSessionId, setSampleConfig,
   } = useScanner()
 
@@ -37,6 +37,10 @@ export function ScannerShell() {
     fetchPlatforms()
       .then((p) => { if (mounted) { setPlatforms(p); setConnected(true) } })
       .catch(() => { if (mounted) { setConnected(false); toast.error('بارگذاری پلتفرم‌ها ناموفق بود') } })
+    // Detect backend mode once at startup
+    hasServerScanner().then((has) => {
+      if (mounted) setScannerMode(has ? 'server' : 'client')
+    })
     return () => { mounted = false }
   }, [])
 
@@ -124,13 +128,19 @@ export function ScannerShell() {
             <Badge
               variant="outline"
               className={
-                connected
+                scannerMode === 'server'
                   ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                  : scannerMode === 'client'
+                  ? 'border-sky-500/30 bg-sky-500/10 text-sky-300'
                   : 'border-zinc-500/30 bg-zinc-500/10 text-zinc-300'
               }
+              title={scannerMode === 'server' ? 'Node backend (server-side scanner)' : scannerMode === 'client' ? 'Browser-based scanner (static / Tauri)' : 'در حال بررسی…'}
             >
-              <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${connected ? 'bg-emerald-400' : 'bg-zinc-500'}`} />
-              {connected ? 'متصل' : 'قطع'}
+              <span className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
+                scannerMode === 'server' ? 'bg-emerald-400' :
+                scannerMode === 'client' ? 'bg-sky-400' : 'bg-zinc-500'
+              }`} />
+              {scannerMode === 'server' ? 'سرور' : scannerMode === 'client' ? 'کلاینت' : '...'}
             </Badge>
             <Button
               size="sm"
