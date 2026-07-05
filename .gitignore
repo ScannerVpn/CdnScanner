@@ -58,6 +58,10 @@ src-tauri/target/
 src-tauri/WixTools/
 src-tauri/Frameworks/
 
+# Build output
+/dist/
+/src-tauri/gen/
+
 # IDE
 .vscode/
 .idea/
