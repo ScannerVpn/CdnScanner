@@ -28,18 +28,20 @@
 
 ## ویژگی‌ها
 
-- **اسکن چندین CDN**: Cloudflare (28 رنج), AWS CloudFront, Fastly, Vercel, Azure, Google Cloud, Bunny CDN, Hugging Face, Railway, و بیشتر
-- **تست دقیق**: TCP connect + TLS handshake + HTTP HEAD + تست کانفیگ واقعی
-- **پینگ ICMP واقعی**: پشتیبانی از ICMP ping روی Windows و Linux/macOS
-- **تست کانفیگ**: تست IP ها با SNI و کانفیگ V2Ray واقعی شما
-- **خروجی V2Ray**: تولید خودکار لینک‌های VLESS/VMess/Trojan
-- **رابط کاربری RTL فارسی**: داشبورد مدرن با RTL
-- **پشتیبانی از CIDR**: وارد کردن رنج IP مثل `44.196.116.0/24` یا بازه `1.1.1.0-1.1.1.255`
-- **اسکن کل رنج**: قابلیت اسکن تمام IP های هر رنج (نه فقط نمونه)
+- **اسکن ۱۷ CDN**: Cloudflare (28 رنج + Spectrum/Workers)، Cloudflare WARP، AWS CloudFront (52+ رنج)، Fastly، Vercel، Azure (Front Door 12 رنج)، Google Cloud (32 رنج GCE/GFE)، Bunny CDN، Gcore، ArvanCloud (ایران)، Fly.io، Hugging Face، Railway، Render، **Akamai (AS20940)**، **CDN77**، StackPath
+- **HTTP Scanner**: کارت اختصاصی برای اسکن هر IP/دامنه/CIDR که خودت وارد می‌کنی (با `1.1.1.0/24` یا `1.1.1.0-1.1.1.255` رنج‌ها خودکار باز میشن)
+- **Dual backend خودکار**: نسخه وب روی Node (`net/tls/http` + ICMP واقعی) اسکن می‌کنه؛ نسخه Tauri (EXE) خودکار fallback می‌کنه به اسکنر مرورگر (`fetch` + WebSocket) — هیچ تنظیمی لازم نیست
+- **تست دقیق هر IP**: TCP connect + TLS Handshake (با SNI) + HTTP HEAD + تست واقعی کانفیگ V2Ray شما
+- **پینگ ICMP واقعی**: پشتیبانی از ICMP ping روی Windows و Linux/macOS (با TCP fallback اگر ICMP بلاک باشه)
+- **تست کانفیگ نمونه**: IP ها فقط وقتی تأیید میشن که با کانفیگ V2Ray واقعی شما (SNI + Host + Path) جواب بدن
+- **خروجی V2Ray**: تولید خودکار لینک‌های VLESS/VMess/Trojan از IP های سالم — کپی یا دانلود یک‌کلیکه
+- **رابط کاربری RTL فارسی**: داشبورد مدرن با toast، progress bar، stats cards، و modal‌های راست‌چین
+- **اسکن کل رنج**: قابلیت اسکن تمام IP های هر رنج (نه فقط نمونه تصادفی)
 
 ## پیش‌نیازها
 
-- **Node.js 18+** — [دانلود](https://nodejs.org)
+- **Node.js 20+** (توصیه شده برای Next.js 16) — [دانلود LTS](https://nodejs.org)
+- **bun یا npm** — bun سریع‌تره ولی npm هم اوکیه
 
 ## اجرا
 
@@ -47,25 +49,28 @@
 ```cmd
 start-web.bat
 ```
-مرورگر روی `http://localhost:3000` باز میشه.
+مرورگر خودکار روی `http://localhost:3000` باز میشه.
 
 ### لینوکس / macOS
 ```bash
 npm install
 npm run dev
+# یا
+bun install
+bun run dev
 ```
 
-## ساخت پکیج قابل حمل (برای اشتراک‌گذاری)
+## ساخت پکیج قابل حمل (Node standalone)
 
 ```cmd
-build-portable.bat
+build.bat
 ```
 
-پوشه `dist/` ساخته میشه که شامل:
-- `start.bat` — اجرای سرور
-- `server/` — سرور Next.js standalone
+`build.bat` خودکار `npm install`، `next build`، و کپی خروجی standalone به `dist/` رو انجام می‌ده. بعد از build:
+- `dist\start.bat` — اجرای سرور و باز کردن مرورگر روی `http://localhost:3000`
+- `dist\server.js` — سرور Next.js standalone (فقط Node.js لازمه، بدون وابستگی اضافی)
 
-برای اجرا: پوشه `dist/` رو کپی کنید و `start.bat` رو اجرا کنید. فقط **Node.js 18+** لازمه.
+برای اشتراک‌گذاری: پوشه `dist/` رو زیپ کنید. گیرنده فقط **Node.js 20+** نیاز داره.
 
 ## ساخت EXE ویندوز (Tauri)
 
@@ -81,7 +86,7 @@ build-tauri.bat
 **نیازی به اسکریپت‌های جداگانه نیست.** build-tauri.bat یک فایل است.
 
 پیش‌نیازها:
-- [Node.js 18+](https://nodejs.org)
+- [Node.js 20+](https://nodejs.org)
 - [Rust](https://rustup.rs)
 - [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (تیک "Desktop development with C++")
 
@@ -123,34 +128,62 @@ build-tauri.bat
 
 ```
 ├── src/
-│   ├── app/api/scanner/     # API endpoints (SSE) — نسخه وب
-│   ├── components/scanner/  # کامپوننت‌های React
-│   └── lib/scanner/
-│       ├── platforms.ts       # تعریف CDN ها و رنج IP
-│       ├── server-scanner.ts  # موتور اسکن سمت سرور (Node: net/tls/http/ICMP)
-│       ├── client-scanner.ts  # موتور اسکن سمت مرورگر (fetch/WebSocket)
-│       ├── sse-client.ts      # رابط — auto-detect بک‌اند، fallback
-│       ├── types.ts           # تایپ‌ها
-│       ├── store.ts           # State management
-│       ├── sample-config.ts   # پارسر لینک V2Ray
-│       └── export.ts          # تولید خروجی
-├── start-web.bat           # اجرای وب (dev)
-├── build.bat                # ساخت پکیج قابل حمل (Node standalone)
-├── build-tauri.bat          # ساخت EXE ویندوز (Tauri static)
-├── src-tauri/               # کد Rust Tauri
-│   ├── src/
-│   ├── tauri.conf.json
-│   └── icons/
-└── package.json
+│   ├── app/
+│   │   ├── layout.tsx             # Root layout فارسی RTL
+│   │   ├── page.tsx               # Mount کردن <ScannerShell />
+│   │   └── api/scanner/           # API endpoints (SSE) — فقط نسخه وب
+│   ├── components/
+│   │   ├── ui/                    # کامپوننت‌های shadcn/ui (45+ فایل)
+│   │   └── scanner/               # کامپوننت‌های اصلی اپ
+│   │       ├── scanner-shell.tsx      # shell اصلی
+│   │       ├── status-panel.tsx       # Start / Stop + حالت اسکن
+│   │       ├── stats-cards.tsx        # کارت‌های کل/اسکن‌شده/زنده/تست‌کانفیگ/زمان
+│   │       ├── platform-grid.tsx      # گرید انتخاب CDN
+│   │       ├── scan-results.tsx       # جدول نتایج real-time
+│   │       ├── http-scanner-dialog.tsx  # مودال ورود IP/CIDR دلخواه
+│   │       ├── sample-config-dialog.tsx # وارد کردن کانفیگ V2Ray نمونه
+│   │       ├── settings-dialog.tsx      # تنظیمات (timeout, ports, concurrency)
+│   │       └── export-dialog.tsx        # خروجی V2Ray
+│   └── lib/
+│       ├── db.ts                  # Prisma client (scaffolding)
+│       ├── utils.ts               # cn() — class-name merger
+│       └── scanner/
+│           ├── platforms.ts       # ۱۷ CDN × 250+ رنج IP (Cloudflare, Akamai, ...)
+│           ├── server-scanner.ts  # موتور اسکن سمت سرور (Node: net/tls/http/ICMP)
+│           ├── client-scanner.ts  # موتور اسکن سمت مرورگر (fetch + WebSocket)
+│           ├── sse-client.ts      # رابط — auto-detect بک‌اند Node/مرورگر، fallback
+│           ├── types.ts           # تایپ‌های Platform/, ScanResult/, ScanProgress
+│           ├── store.ts           # Zustand store (state management)
+│           ├── sample-config.ts  # پارسر لینک V2Ray (vless/vmess/trojan)
+│           └── export.ts          # تولید خروجی V2Ray
+├── scripts/
+│   ├── build-static.js             # Orchestrator: جابجایی src/app/api + next build (با try/finally)
+│   ├── capture-gif.js              # CDP driver: فیلم‌برداری از UI با chrome remote debugging
+│   └── stitch-gif.js               # ffmpeg two-pass palette → GIF
+├── screenshots/                    # تصاویر و GIF برای release notes / README
+├── start-web.bat                   # اجرای وب (dev) — ویندوز
+├── build.bat                       # ساخت پکیج قابل حمل (Node standalone) — ویندوز
+├── build-tauri.bat                 # ساخت EXE ویندوز (Tauri static) — یک فایل، همه چیز خودکار
+├── src-tauri/                      # کد Rust Tauri 2
+│   ├── src/{lib.rs,main.rs}        # Backend Rust
+│   ├── tauri.conf.json             # تنظیمات Tauri (icon, identifier, frontendDist)
+│   ├── Cargo.toml                  # وابستگی‌های Rust
+│   └── icons/                      # آیکون‌های EXE
+├── README.md                       # این فایل
+├── TAURI.md                        # مستندات کامل Tauri build + troubleshooting
+└── package.json                    # Next.js + Tauri scripts + deps
 ```
 
 ## مشارکت
 
 1. Fork کنید
-2. شاخه جدید بسازید
-3. تغییرات رو commit کنید
-4. Push و Pull Request بزنید
+2. شاخه جدید بسازید (`git checkout -b feature/amazing`)
+3. تغییرات رو commit کنید (`git commit -m 'Add some amazing feature'`)
+4. Push کنید (`git push origin feature/amazing`)
+5. Pull Request باز کنید
 
-## مجوز
+اگه رنج IP جدیدی برای یه CDN پیدا کردید، فقط توی `src/lib/scanner/platforms.ts` اضافه‌اش کنید. اگه CDN کاملاً جدید می‌خواهید، یه entry جدید به آرایه‌ی `PLATFORMS` اضافه کنید.
 
-MIT License
+## لایسنس
+
+MIT License — استفاده آزاد برای پروژه‌های شخصی و تجاری.
