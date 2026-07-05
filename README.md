@@ -2,6 +2,30 @@
 
 > اسکنر IP تمیز CDN — پیدا کردن IP های سالم برای V2Ray / VLESS / VMess / Trojan
 
+## 🎬 نگاهی سریع — What's New in v1.0.0
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/ScannerVpn/CdnScanner/main/screenshots/scan-demo.gif" alt="SNI Scanner — Live scan demo" width="100%">
+</p>
+
+<p align="center">
+  <em>شروع اسکن → progress bar پر میشه → IP های سالم real-time اضافه میشن → خروجی V2Ray آماده دانلود.</em>
+</p>
+
+<p align="center">
+  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="GitHub release" src="https://img.shields.io/badge/v1.0.0-Release-22c55e?style=flat-square&logo=github"></a>
+  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download NSIS" src="https://img.shields.io/badge/Download-NSIS%20Setup-22c55e?style=flat-square&logo=windows"></a>
+  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download MSI" src="https://img.shields.io/badge/Download-MSI-22c55e?style=flat-square&logo=windows"></a>
+  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download Portable" src="https://img.shields.io/badge/Download-Portable%20EXE-22c55e?style=flat-square&logo=windows"></a>
+</p>
+
+**ویژگی‌های کلیدی این نسخه:**
+- ⚡ **اسکن real-time** با progress bar و results streaming (EventStream / fetch + WebSocket)
+- 🔌 **Dual backend**: Node (نسخه وب — TCP/TLS/ICMP واقعی) و browser-only (نسخه Tauri — fetch)
+- 🎯 **تست کانفیگ نمونه**: IP ها فقط وقتی تأیید میشن که با V2Ray واقعی شما جواب بدن
+- 📦 **خروجی V2Ray**: لینک‌های VLESS/VMess/Trojan از IP های سالم، یک کلیک کپی/دانلود
+- 🖥️ **EXE مستقل**: Tauri 2 installer (NSIS 2.9 MB · MSI 4.1 MB · Portable 12 MB) — بدون نیاز به Node در سیستم کاربر
+
 ## ویژگی‌ها
 
 - **اسکن چندین CDN**: Cloudflare (28 رنج), AWS CloudFront, Fastly, Vercel, Azure, Google Cloud, Bunny CDN, Hugging Face, Railway, و بیشتر
