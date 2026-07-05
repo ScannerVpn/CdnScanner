@@ -50,13 +50,16 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
     onSelect(id)
     setExpandedId(expandedId === id ? null : id)
     if (isHttp) onOpenHttpScanner()
-    // Auto-select all ranges when switching to a new platform
-    if (!isHttp && id !== selectedId) {
+    // Auto-select all ranges when clicking a platform (first time or re-click)
+    if (!isHttp) {
       const platform = platforms.find(p => p.id === id)
       if (platform && platform.ranges.length > 0) {
         const platformCidrs = platform.ranges.map(r => r.cidr)
-        const others = selectedRanges.filter(r => !platformCidrs.includes(r))
-        setSelectedRanges([...others, ...platformCidrs])
+        const allReady = platformCidrs.every(c => selectedRanges.includes(c))
+        if (!allReady) {
+          const others = selectedRanges.filter(r => !platformCidrs.includes(r))
+          setSelectedRanges([...others, ...platformCidrs])
+        }
       }
     }
   }
