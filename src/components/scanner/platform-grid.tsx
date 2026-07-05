@@ -188,7 +188,7 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                       )
                     })}
                   </div>
-                  <p className="text-[11px] text-zinc-500 mt-2 leading-relaxed">
+                  <div className="text-[11px] text-zinc-500 mt-2 leading-relaxed flex flex-wrap items-center gap-2">
                     {selectedCount === 0
                       ? 'همه رنج‌ها اسکن می‌شن — برای محدود کردن، چند رنج رو تیک بزن'
                       : (() => {
@@ -205,14 +205,14 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                           const showAllLink = !config.scanAllIps && totalIps > scannedIps
                           return (
                             <>
-                              {`${selectedCount} رنج — ${fmt(totalIps)} IP${scanNote}`}
+                              <span>{`${selectedCount} رنج — ${fmt(totalIps)} IP${scanNote}`}</span>
                               {showAllLink && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     useScanner.getState().updateConfig({ scanAllIps: true })
                                   }}
-                                  className="mr-2 text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                                  className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
                                 >
                                   اسکن همه {fmt(totalIps)} IP
                                 </button>
@@ -220,6 +220,7 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                             </>
                           )
                         })()}
+                  </div>
                 </div>
               )}
 
