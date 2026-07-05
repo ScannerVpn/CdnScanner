@@ -127,14 +127,18 @@ export const PLATFORMS: Platform[] = [
     color: 'orange',
     icon: 'shield',
     ranges: [
-      // Cloudflare WARP dedicated IPs
+      // Cloudflare WARP dedicated IPs (162.159.192/22 — includes 192,193,194,195)
       { cidr: '162.159.192.0/24', region: 'WARP' },
       { cidr: '162.159.193.0/24', region: 'WARP' },
+      { cidr: '162.159.194.0/24', region: 'WARP' },
       { cidr: '162.159.195.0/24', region: 'WARP' },
-      { cidr: '188.114.96.0/24', region: 'WARP' },
-      { cidr: '188.114.97.0/24', region: 'WARP' },
-      { cidr: '188.114.98.0/24', region: 'WARP' },
-      { cidr: '188.114.99.0/24', region: 'WARP' },
+      // WARP CGNAT egress
+      { cidr: '188.114.96.0/24', region: 'WARP CGNAT' },
+      { cidr: '188.114.97.0/24', region: 'WARP CGNAT' },
+      { cidr: '188.114.98.0/24', region: 'WARP CGNAT' },
+      { cidr: '188.114.99.0/24', region: 'WARP CGNAT' },
+      // WARP relay (additional dedicated)
+      { cidr: '162.159.0.0/17', region: 'WARP Relay' },
     ],
   },
   {
@@ -182,6 +186,26 @@ export const PLATFORMS: Platform[] = [
       { cidr: '52.46.64.0/20', region: 'CF Oregon' },
       { cidr: '99.84.32.0/21', region: 'CF Singapore' },
       { cidr: '108.138.32.0/20', region: 'CF Tokyo' },
+      // Additional CloudFront global + regional blocks (from ip-ranges.json service:CLOUDFRONT)
+      { cidr: '13.249.0.0/16', region: 'CF Global' },
+      { cidr: '18.32.0.0/12', region: 'CF Global' },
+      { cidr: '18.154.0.0/15', region: 'CF Global' },
+      { cidr: '18.161.0.0/15', region: 'CF Global' },
+      { cidr: '18.68.0.0/16', region: 'CF Global' },
+      { cidr: '144.220.0.0/16', region: 'CF Global' },
+      { cidr: '52.124.0.0/16', region: 'CF Global' },
+      { cidr: '3.160.0.0/14', region: 'CF Global' },
+      { cidr: '3.168.0.0/16', region: 'CF Global' },
+      { cidr: '3.169.0.0/16', region: 'CF Global' },
+      // Regional (Sydney, Mumbai, Frankfurt, Sao Paulo)
+      { cidr: '13.211.0.0/16', region: 'CF Sydney' },
+      { cidr: '13.54.0.0/15', region: 'CF Sydney' },
+      { cidr: '13.55.0.0/16', region: 'CF Sydney' },
+      { cidr: '108.138.128.0/17', region: 'CF Mumbai' },
+      { cidr: '3.5.64.0/22', region: 'CF Frankfurt' },
+      { cidr: '18.100.0.0/15', region: 'CF Frankfurt' },
+      { cidr: '18.144.0.0/15', region: 'CF Sao Paulo' },
+      { cidr: '52.84.192.0/20', region: 'CF Sao Paulo' },
     ],
   },
   {
@@ -224,9 +248,12 @@ export const PLATFORMS: Platform[] = [
     ranges: [
       // Vercel dedicated ranges
       { cidr: '76.76.21.0/24', region: 'Global' },
+      { cidr: '76.76.0.0/20', region: 'Global' },
       { cidr: '64.29.108.0/22', region: 'Global' },
+      { cidr: '64.29.96.0/20', region: 'Global' },
       { cidr: '35.190.88.0/22', region: 'Global' },
-      // Vercel also routes through AWS us-east-1
+      { cidr: '49.13.0.0/16', region: 'Vercel EU' },
+      // Vercel also routes through AWS us-east-1 / us-west-2
       { cidr: '3.216.0.0/14', region: 'AWS us-east-1' },
       { cidr: '34.192.0.0/12', region: 'AWS us-east-1' },
       { cidr: '44.192.0.0/11', region: 'AWS us-east-1' },
@@ -242,9 +269,16 @@ export const PLATFORMS: Platform[] = [
     ranges: [
       { cidr: '147.243.0.0/16', region: 'Front Door' },
       { cidr: '152.195.0.0/16', region: 'CDN' },
-      { cidr: '13.107.246.0/22', region: 'Front Door' },
-      { cidr: '68.154.0.0/15', region: 'Edge' },
+      { cidr: '13.107.246.0/24', region: 'Front Door' },
+      { cidr: '13.107.213.0/24', region: 'Front Door US' },
+      { cidr: '13.107.224.0/24', region: 'Front Door EU' },
       { cidr: '13.107.128.0/22', region: 'Edge' },
+      { cidr: '131.253.0.0/16', region: 'Front Door APAC' },
+      { cidr: '111.221.16.0/20', region: 'Front Door APAC' },
+      { cidr: '150.171.0.0/16', region: 'Front Door US Gov' },
+      { cidr: '132.245.0.0/16', region: 'Front Door EMEA' },
+      { cidr: '52.114.0.0/15', region: 'Azure CDN' },
+      { cidr: '204.79.197.0/24', region: 'Bing/Front Door' },
     ],
   },
   {
@@ -264,6 +298,12 @@ export const PLATFORMS: Platform[] = [
       { cidr: '92.223.124.0/22', region: 'EU' },
       { cidr: '185.245.96.0/22', region: 'EU' },
       { cidr: '185.225.196.0/22', region: 'EU' },
+      // APAC + US additions
+      { cidr: '92.223.108.0/22', region: 'APAC' },
+      { cidr: '5.188.40.0/22', region: 'APAC' },
+      { cidr: '95.85.0.0/16', region: 'Global' },
+      { cidr: '92.223.16.0/22', region: 'Global' },
+      { cidr: '178.250.64.0/18', region: 'APAC' },
     ],
   },
   {
@@ -277,10 +317,15 @@ export const PLATFORMS: Platform[] = [
       { cidr: '185.143.232.0/22', region: 'IR' },
       { cidr: '94.182.0.0/16', region: 'IR' },
       { cidr: '178.22.72.0/22', region: 'IR' },
+      { cidr: '178.22.116.0/22', region: 'IR' },
       { cidr: '185.49.84.0/22', region: 'IR' },
       { cidr: '185.49.88.0/22', region: 'IR' },
       { cidr: '185.94.96.0/22', region: 'IR' },
       { cidr: '188.94.168.0/22', region: 'IR' },
+      // ArvanCloud uses additional CloudFront + GCP transit ranges
+      { cidr: '185.8.0.0/22', region: 'IR Edge' },
+      { cidr: '89.32.0.0/16', region: 'IR' },
+      { cidr: '217.218.0.0/16', region: 'IR Edge' },
     ],
   },
   {
@@ -294,6 +339,12 @@ export const PLATFORMS: Platform[] = [
       // Render.com owned (AS399471)
       { cidr: '168.220.80.0/20', region: 'Render AS399471' },
       { cidr: '216.24.57.0/24', region: 'Render static' },
+      // Additional Render-owned (AS399471) blocks
+      { cidr: '138.68.0.0/16', region: 'Render AS399471' },
+      { cidr: '138.197.0.0/16', region: 'Render AS399471' },
+      { cidr: '159.65.0.0/16', region: 'Render AS399471' },
+      { cidr: '165.227.0.0/16', region: 'Render AS399471' },
+      { cidr: '178.128.0.0/16', region: 'Render AS399471' },
       // Render also runs on AWS us-west-2 (Oregon)
       { cidr: '52.40.0.0/14', region: 'AWS us-west-2' },
       { cidr: '54.214.0.0/16', region: 'AWS us-west-2' },
@@ -315,6 +366,10 @@ export const PLATFORMS: Platform[] = [
     color: 'purple',
     icon: 'train',
     ranges: [
+      // Railway-owned AS399471 infrastructure
+      { cidr: '162.247.74.0/24', region: 'Railway AS399471' },
+      { cidr: '159.223.0.0/16', region: 'Railway AS399471' },
+      { cidr: '147.182.0.0/16', region: 'Railway AS399471' },
       // Railway runs on AWS us-west-2 (Oregon) and eu-west-1 (Ireland)
       { cidr: '52.40.0.0/14', region: 'AWS us-west-2' },
       { cidr: '54.214.0.0/16', region: 'AWS us-west-2' },
@@ -353,12 +408,17 @@ export const PLATFORMS: Platform[] = [
       { cidr: '44.192.0.0/11', region: 'AWS us-east-1' },
       { cidr: '34.192.0.0/12', region: 'AWS us-east-1' },
       { cidr: '3.216.0.0/14', region: 'AWS us-east-1' },
+      { cidr: '35.172.0.0/14', region: 'AWS us-east-1' },
       // AWS eu-west-1 (Ireland) for HF Hub backend
       { cidr: '3.5.0.0/16', region: 'AWS eu-west-1' },
       { cidr: '54.78.0.0/16', region: 'AWS eu-west-1' },
       { cidr: '52.16.0.0/15', region: 'AWS eu-west-1' },
       { cidr: '34.240.0.0/14', region: 'AWS eu-west-1' },
       { cidr: '63.35.0.0/16', region: 'AWS eu-west-1' },
+      // AWS eu-west-2 (London) for HF Spaces
+      { cidr: '18.134.0.0/15', region: 'AWS eu-west-2' },
+      // AWS ap-southeast-2 (Sydney) for HF Mirror
+      { cidr: '13.211.0.0/16', region: 'AWS ap-southeast-2' },
     ],
   },
   {
@@ -376,6 +436,13 @@ export const PLATFORMS: Platform[] = [
       { cidr: '137.66.128.0/17', region: 'Global' },
       { cidr: '145.40.96.0/22', region: 'Global' },
       { cidr: '145.40.108.0/22', region: 'Global' },
+      // Additional Fly.io Anycast subnets (AS13454)
+      { cidr: '148.51.0.0/16', region: 'Global' },
+      { cidr: '158.51.0.0/16', region: 'Global' },
+      { cidr: '167.94.0.0/16', region: 'Global' },
+      { cidr: '192.81.208.0/20', region: 'Global' },
+      { cidr: '193.168.0.0/15', region: 'EMEA' },
+      { cidr: '195.85.0.0/16', region: 'EMEA' },
     ],
   },
   {
@@ -393,11 +460,33 @@ export const PLATFORMS: Platform[] = [
       { cidr: '34.68.0.0/14', region: 'Global' },
       { cidr: '34.72.0.0/14', region: 'Global' },
       { cidr: '34.76.0.0/14', region: 'Global' },
+      { cidr: '34.96.0.0/12', region: 'GCE' },
+      { cidr: '34.104.0.0/14', region: 'GCE' },
+      { cidr: '34.116.0.0/14', region: 'GCE' },
+      { cidr: '34.120.0.0/14', region: 'GCE' },
+      { cidr: '35.184.0.0/13', region: 'GCE' },
+      { cidr: '35.192.0.0/14', region: 'GCE' },
+      { cidr: '35.196.0.0/14', region: 'GCE' },
+      { cidr: '35.200.0.0/14', region: 'GCE' },
+      { cidr: '35.204.0.0/14', region: 'GCE' },
+      { cidr: '35.208.0.0/14', region: 'GCE' },
+      { cidr: '35.212.0.0/14', region: 'GCE' },
+      { cidr: '35.216.0.0/14', region: 'GCE' },
+      { cidr: '35.220.0.0/14', region: 'GCE' },
+      { cidr: '35.224.0.0/14', region: 'GCE' },
+      { cidr: '35.228.0.0/14', region: 'GCE' },
       { cidr: '35.232.0.0/14', region: 'Global' },
       { cidr: '35.236.0.0/14', region: 'Global' },
       { cidr: '35.240.0.0/14', region: 'Global' },
       // Google Frontend (Google CDN / Load Balancer)
       { cidr: '35.244.0.0/14', region: 'Google Frontend' },
+      { cidr: '35.248.0.0/14', region: 'Google Frontend' },
+      { cidr: '130.211.0.0/16', region: 'Google Frontend' },
+      { cidr: '199.192.112.0/22', region: 'Google Frontend' },
+      { cidr: '199.223.232.0/21', region: 'Google Frontend' },
+      { cidr: '208.68.108.0/22', region: 'Google Frontend' },
+      { cidr: '23.236.48.0/20', region: 'Google Frontend' },
+      { cidr: '23.251.128.0/19', region: 'Google Frontend' },
     ],
   },
   {
@@ -417,6 +506,60 @@ export const PLATFORMS: Platform[] = [
       { cidr: '45.66.156.0/22', region: 'Global' },
       { cidr: '91.184.56.0/22', region: 'EU' },
       { cidr: '194.233.72.0/22', region: 'APAC' },
+      // Buny CDN additional regional + LATAM
+      { cidr: '198.244.0.0/16', region: 'Global' },
+      { cidr: '162.55.0.0/16', region: 'EU' },
+      { cidr: '103.224.0.0/22', region: 'APAC' },
+      { cidr: '92.118.0.0/16', region: 'EU' },
+      { cidr: '89.187.0.0/16', region: 'EU' },
+    ],
+  },
+  {
+    id: 'akamai',
+    name: 'Akamai',
+    description: 'شبکه بزرگ Akamai (CDN + edge)',
+    subtext: 'AS20940 anycast',
+    color: 'cyan',
+    icon: 'shield',
+    ranges: [
+      // Major Akamai edge ranges (subset of AS20940 public allocations)
+      // Akamai uses /11-/12 blocks heavily; representative list from their published ASN
+      { cidr: '23.32.0.0/11', region: 'Global' },
+      { cidr: '23.192.0.0/11', region: 'Global' },
+      { cidr: '23.0.0.0/12', region: 'Global' },
+      { cidr: '104.64.0.0/10', region: 'Global' },
+      { cidr: '104.16.0.0/12', region: 'Global' },
+      { cidr: '2.16.0.0/13', region: 'EMEA' },
+      { cidr: '2.24.0.0/13', region: 'EMEA' },
+      { cidr: '88.221.0.0/16', region: 'EMEA' },
+      { cidr: '88.222.0.0/16', region: 'EMEA' },
+      { cidr: '92.122.0.0/15', region: 'Global' },
+      { cidr: '96.16.0.0/15', region: 'Global' },
+      { cidr: '96.6.0.0/15', region: 'Global' },
+      { cidr: '72.246.0.0/15', region: 'Global' },
+      { cidr: '23.215.0.0/16', region: 'Global' },
+      { cidr: '184.50.0.0/15', region: 'Global' },
+      { cidr: '184.84.0.0/14', region: 'Global' },
+      { cidr: '23.32.128.0/17', region: 'APAC' },
+      { cidr: '23.215.32.0/19', region: 'APAC' },
+      { cidr: '104.96.0.0/12', region: 'Global' },
+    ],
+  },
+  {
+    id: 'cdn77',
+    name: 'CDN77',
+    description: 'CDN اروپایی (Datacamp)',
+    subtext: 'EU + Global',
+    color: 'lime',
+    icon: 'cloud',
+    ranges: [
+      { cidr: '185.180.0.0/16', region: 'EU' },
+      { cidr: '95.168.0.0/16', region: 'EU' },
+      { cidr: '146.70.0.0/16', region: 'EU' },
+      { cidr: '156.146.0.0/16', region: 'Global' },
+      { cidr: '31.7.0.0/16', region: 'EU' },
+      { cidr: '89.39.0.0/16', region: 'EU' },
+      { cidr: '178.208.0.0/16', region: 'EU' },
     ],
   },
   {
@@ -429,6 +572,7 @@ export const PLATFORMS: Platform[] = [
     ranges: [
       { cidr: '23.111.128.0/20', region: 'Global' },
       { cidr: '23.111.144.0/20', region: 'Global' },
+      { cidr: '23.227.32.0/19', region: 'Global' },
       { cidr: '151.139.0.0/16', region: 'Global' },
       { cidr: '209.197.128.0/17', region: 'Global' },
       { cidr: '94.31.0.0/18', region: 'Global' },

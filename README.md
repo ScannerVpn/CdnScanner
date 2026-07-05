@@ -90,20 +90,22 @@ build-tauri.bat
 | CDN | تعداد رنج | توضیح |
 |-----|-----------|-------|
 | Cloudflare | 28 | Official + Spectrum + Workers |
-| Cloudflare WARP | 7 | WARP / Zero Trust |
-| AWS CloudFront | 30+ | Global + Regional edges |
+| Cloudflare WARP | 9 | WARP / Zero Trust / CGNAT |
+| AWS CloudFront | 50+ | Global + Regional edges |
 | Fastly | 19 | Official API |
-| Vercel | 6 | Edge + AWS |
-| Azure | 5 | Front Door + CDN |
-| Google Cloud | 10 | GCP + Frontend |
-| Bunny CDN | 8 | Global |
-| Gcore CDN | 9 | EU |
-| ArvanCloud | 7 | IR |
-| Fly.io | 6 | AS13454 |
-| Hugging Face | 15 | CloudFront + AWS |
-| Railway | 14 | AWS us-west-2 + eu-west-1 |
-| Render | 11 | AS399471 + AWS |
-| StackPath | 6 | Global |
+| Vercel | 9 | Edge + AWS |
+| Azure | 12 | Front Door + CDN (multi-region) |
+| Google Cloud | 30 | GCE + Google Frontend |
+| Bunny CDN | 13 | EU + Global |
+| Gcore CDN | 14 | EU + APAC + Global |
+| ArvanCloud | 10 | IR + Edge |
+| Fly.io | 12 | AS13454 |
+| Hugging Face | 17 | CloudFront + AWS multi-region |
+| Railway | 16 | AS399471 + AWS |
+| Render | 16 | AS399471 + AWS |
+| Akamai | 19 | AS20940 anycast |
+| CDN77 | 7 | EU |
+| StackPath | 7 | Global |
 
 ## نحوه کار اسکنر
 
