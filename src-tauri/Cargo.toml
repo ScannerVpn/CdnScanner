@@ -1,7 +1,7 @@
 [package]
 name = "sni-scanner"
-version = "1.0.0"
-description = "SNI Scanner - Find clean IPs for V2Ray"
+version = "1.1.0"
+description = "SNI Scanner - Find clean IPs for V2Ray (Web + Desktop + Android)"
 authors = ["you"]
 edition = "2021"
 rust-version = "1.70"
@@ -18,6 +18,12 @@ tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-shell = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+# Native scanner (used on Android and as fallback on desktop Tauri).
+# Lets us probe HTTPS-to-IP with a custom SNI Host header — bypassing the
+# browser/webview TLS hostname validation that blocks direct-IP HTTPS probes.
+tokio = { version = "1", features = ["rt-multi-thread", "net", "time", "macros"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

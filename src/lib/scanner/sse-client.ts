@@ -54,6 +54,19 @@ export async function startScan(
   sampleConfigText: string | undefined,
   cb: ScannerCallbacks,
 ): Promise<ScanHandle> {
+  // 1) Tauri (desktop or Android) — use the native Rust scanner which bypasses
+  //    webview TLS hostname validation. This is the only path that meaningfully
+  //    probes HTTPS to a direct IP with custom SNI.
+  if (isTauriRuntime()) {
+    try {
+      const { startNativeScan } = await import('./native-scanner')
+      return await startNativeScan(platformId, config, customIpList, sampleConfigText, cb)
+    } catch (e: any) {
+      console.warn('[scanner] native scanner unavailable, falling back:', e?.message)
+      // Fall through to client/server fallback below.
+    }
+  }
+
   const useServer = await hasServerScanner()
 
   if (useServer) {
@@ -69,6 +82,16 @@ export async function startScan(
   // Client-side fallback (works in Tauri static build + any browser)
   const { startClientScan } = await import('./client-scanner')
   return startClientScan(platformId, config, customIpList, sampleConfigText, cb)
+}
+
+// Detects whether the current page runs inside a Tauri webview.
+// Tauri 2 sets `window.__TAURI_INTERNALS__` in any platform (desktop, Android, iOS).
+function isTauriRuntime(): boolean {
+  try {
+    return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+  } catch {
+    return false
+  }
 }
 
 async function startServerScan(
