@@ -17,7 +17,7 @@
   <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download NSIS" src="https://img.shields.io/badge/Download-NSIS%20Setup-22c55e?style=flat-square&logo=windows"></a>
   <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download MSI" src="https://img.shields.io/badge/Download-MSI-22c55e?style=flat-square&logo=windows"></a>
   <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download Portable" src="https://img.shields.io/badge/Download-Portable%20EXE-22c55e?style=flat-square&logo=windows"></a>
-  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download Android" src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=flat-square&logo=android"></a>
+  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.1.0"><img alt="Download Android" src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=flat-square&logo=android"></a>
 </p>
 
 **ویژگی‌های کلیدی این نسخه:**
