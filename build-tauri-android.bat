@@ -119,6 +119,22 @@ if not exist "out\index.html" (
 :: ------------------------------------------------------------------
 echo.
 echo [4/5] Building Android APK (this takes a while)...
+
+:: ------------------------------------------------------------------
+:: Verify the release keystore is configured. Without it the APK will
+:: be signed with the debug key, which is NOT valid for distribution.
+:: ------------------------------------------------------------------
+if not exist "src-tauri\keystore\keystore.properties" (
+    echo.
+    echo WARNING: src-tauri\keystore\keystore.properties not found.
+    echo          The APK will be signed with the DEBUG keystore and is
+    echo          NOT suitable for distribution. See src-tauri\keystore\
+    echo          README.md for setup instructions.
+    echo.
+    :: Skip the pause in non-interactive shells (CI) so the build doesn't hang.
+    if "%CI%"=="" pause
+)
+
 call npx tauri android build --apk
 if %errorlevel% neq 0 (
     echo ERROR: Android build failed. See above Gradle output for the root cause.

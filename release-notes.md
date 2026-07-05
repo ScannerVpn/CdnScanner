@@ -12,19 +12,25 @@
 
 ## 🎯 دانلود / Downloads
 
-سه فایل برای Windows x64 ضمیمه شده‌اند. هر کدام روش متفاوتی برای نصب/اجرا دارد:
+چهار فایل ضمیمه شده‌اند — **هم PC، هم Android در یک release**:
 
 | فایل | حجم | روش |
 |------|-----|------|
-| **`SNI Scanner_1.0.0_x64-setup.exe`** (NSIS) | ~2.9 MB | نصب‌کننده گرافیکی — دابل‌کلیک کنید |
-| **`SNI Scanner_1.0.0_x64_en-US.msi`** (MSI) | ~4.1 MB | نصب‌کننده سازمانی (Group Policy, SCCM) |
-| **`sni-scanner.exe`** (Portable) | ~12 MB | بدون نصب — دابل‌کلیک کنید و اجرا شود |
+| **`SNI Scanner_1.0.0_x64-setup.exe`** (NSIS) | ~2.9 MB | نصب‌کننده گرافیکی ویندوز — دابل‌کلیک کنید |
+| **`SNI Scanner_1.0.0_x64_en-US.msi`** (MSI) | ~4.1 MB | نصب‌کننده سازمانی ویندوز (Group Policy, SCCM) |
+| **`sni-scanner.exe`** (Portable) | ~12 MB | EXE پرتابل ویندوز — بدون نصب، دابل‌کلیک و اجرا |
+| **`sni-scanner-1.0.0-arm64-v8a.apk`** (Android) | ~6 MB | **اکثر گوشی‌ها** — Redmi, Samsung, Pixel, ... (Android 7+ روی 64-bit) |
+| **`sni-scanner-1.0.0-armeabi-v7a.apk`** (Android) | ~5 MB | گوشی‌های قدیمی‌تر 32-bit (Android 7+) |
+| **`sni-scanner-1.0.0-x86.apk`** (Android) | ~6 MB | شبیه‌ساز (emulator) 32-bit |
+| **`sni-scanner-1.0.0-x86_64.apk`** (Android) | ~7 MB | شبیه‌ساز (emulator) 64-bit |
 
-> ⚠️ هر سه فایل روی **Windows 10/11** کار می‌کنند. روی ویندوز 7/8 ممکن است WebView2 نصب نباشد که خود installer دانلودش می‌کند.
+> ⚠️ سه فایل ویندوز روی **Windows 10/11** کار می‌کنند. روی ویندوز 7/8 ممکن است WebView2 نصب نباشد که خود installer دانلودش می‌کند.
+> 📱 فایل‌های APK روی **Android 7.0 (API 24) به بالا** کار می‌کنن. **برای Redmi (و اکثر گوشی‌های امروزی) فایل `arm64-v8a` رو نصب کنید.** فایل رو به گوشی منتقل کنید، در تنظیمات «Allow from this source» رو فعال کنید، و نصب کنید — یا از طریق `adb install -r sni-scanner-1.0.0-arm64-v8a.apk`.
 
 ## ✨ ویژگی‌ها / Features
 
 - **پشتیبانی از ۱۵+ CDN**: Cloudflare, Cloudflare WARP, AWS CloudFront, Fastly, Vercel, Azure, Google Cloud, Bunny CDN, Gcore, ArvanCloud, Fly.io, Hugging Face, Railway, Render, StackPath
+- **یک release، هر دو پلتفرم**: GitHub Actions به‌طور خودکار APK اندروید رو هم‌زمان با build ویندوز می‌سازه و به همون release page ضمیمه می‌کنه
 - **اسکن دقیق با چند مرحله قابل تنظیم**: TCP connect → TLS handshake → HTTP HEAD → تست کانفیگ V2Ray واقعی
 - **پینگ واقعی ICMP** (در نسخه وب روی ویندوز، با استفاده از `ping.exe`)
 - **پشتیبانی از کانفیگ نمونه**: لینک V2Ray خودت رو بچسبان تا فقط IPهایی که با کانفیگ واقعی شما کار می‌کنند نمایش داده شوند

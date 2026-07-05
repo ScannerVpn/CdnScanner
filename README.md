@@ -17,6 +17,7 @@
   <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download NSIS" src="https://img.shields.io/badge/Download-NSIS%20Setup-22c55e?style=flat-square&logo=windows"></a>
   <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download MSI" src="https://img.shields.io/badge/Download-MSI-22c55e?style=flat-square&logo=windows"></a>
   <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download Portable" src="https://img.shields.io/badge/Download-Portable%20EXE-22c55e?style=flat-square&logo=windows"></a>
+  <a href="https://github.com/ScannerVpn/CdnScanner/releases/tag/v1.0.0"><img alt="Download Android" src="https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=flat-square&logo=android"></a>
 </p>
 
 **ویژگی‌های کلیدی این نسخه:**
@@ -25,6 +26,7 @@
 - 🎯 **تست کانفیگ نمونه**: IP ها فقط وقتی تأیید میشن که با V2Ray واقعی شما جواب بدن
 - 📦 **خروجی V2Ray**: لینک‌های VLESS/VMess/Trojan از IP های سالم، یک کلیک کپی/دانلود
 - 🖥️ **EXE مستقل**: Tauri 2 installer (NSIS 2.9 MB · MSI 4.1 MB · Portable 12 MB) — بدون نیاز به Node در سیستم کاربر
+- 📱 **APK اندروید**: Tauri 2 mobile build (aarch64/armv7/x86/x86_64) — اسکنر روی Android 7.0+؛ یک release، هر دو پلتفرم
 
 ## ویژگی‌ها
 
@@ -89,6 +91,58 @@ build-tauri.bat
 - [Node.js 20+](https://nodejs.org)
 - [Rust](https://rustup.rs)
 - [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) (تیک "Desktop development with C++")
+
+## ساخت APK اندروید (Tauri)
+
+```cmd
+build-tauri-android.bat
+```
+
+این اسکریپت APK رو با **release keystore** امضا می‌کنه (signing با کلید واقعی، آماده برای distribution در هر مارکت یا sideload). خروجی:
+
+- `src-tauri\gen\android\app\build\outputs\apk\release\` — **۴ فایل APK** (یکی برای هر ABI):
+  - `sni-scanner-<version>-arm64-v8a.apk` — **اکثر گوشی‌های امروزی** (Redmi, Samsung, Pixel، همه گوشی‌های 2017 به بعد)
+  - `sni-scanner-<version>-armeabi-v7a.apk` — گوشی‌های قدیمی‌تر 32-bit (Android 7+)
+  - `sni-scanner-<version>-x86.apk` — emulator (32-bit)
+  - `sni-scanner-<version>-x86_64.apk` — emulator (64-bit)
+
+> 📌 برای گوشی Redmi (یا هر Android 7+)، فایل `arm64-v8a` رو بگیر و نصب کن.
+
+نصب روی device متصل:
+```cmd
+adb install -r src-tauri\gen\android\app\build\outputs\apk\release\sni-scanner-1.0.0-arm64-v8a.apk
+```
+
+پیش‌نیازها:
+- [Node.js 20+](https://nodejs.org)
+- [Rust](https://rustup.rs) با targetهای Android:
+  ```bash
+  rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+  ```
+- [Android Studio](https://developer.android.com/studio) (برای SDK + NDK)
+- JDK 17+ (مثلاً [Temurin](https://adoptium.net))
+
+> 🔑 keystore release از قبل در `src-tauri\keystore\release.keystore` ساخته شده. اگه می‌خوای خودت از اول بسازی، `src-tauri\keystore\README.md` رو ببین.
+
+## انتشار خودکار (CI/CD) — یک release، هر دو پلتفرم
+
+وقتی تگ `v*` رو push می‌کنی (مثلاً `git tag v1.1.0 && git push origin v1.1.0`)، workflow اندروید به‌طور خودکار:
+
+1. APK release (signed) رو با keystore می‌سازه
+2. فایل(های) APK رو به **همون release page** گیت‌هاب که فایل‌های ویندوز هست ضمیمه می‌کنه
+
+یعنی کاربر هر دو نسخه PC و Android رو یکجا می‌بینه — جداسازی قبلی حذف میشه.
+
+**تنظیم Secrets (فقط یک‌بار، در Settings → Secrets and variables → Actions ریپو):**
+
+| Secret | مقدار |
+|--------|-------|
+| `ANDROID_KEYSTORE_BASE64` | خروجی `base64 -w 0 src-tauri/keystore/release.keystore` (در bash/Git Bash) یا `[Convert]::ToBase64String([IO.File]::ReadAllBytes("src-tauri/keystore/release.keystore"))` (در PowerShell) |
+| `ANDROID_KEYSTORE_PASSWORD` | پسورد از `keystore.properties` |
+| `ANDROID_KEY_ALIAS` | alias کلید (پیش‌فرض: `release`) |
+| `ANDROID_KEY_PASSWORD` | پسورد key (معمولاً همون store password) |
+
+> امنیت: فایل `.keystore` هرگز commit نمی‌شه — workflow اون رو از secret می‌خونه و در CI می‌سازه.
 
 ## CDN های پشتیبانی شده
 

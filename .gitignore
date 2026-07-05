@@ -68,7 +68,12 @@ src-tauri/Frameworks/
 
 # Build output
 /dist/
-/src-tauri/gen/
+# Note: src-tauri/gen/ is NOT ignored — the generated Android project at
+# src-tauri/gen/android/ is tracked. Its own .gitignore (at
+# src-tauri/gen/android/app/.gitignore) excludes the truly transient files
+# (jniLibs/*.so, generated sources, tauri.build.gradle.kts, etc.). This is
+# important for the release signing config in build.gradle.kts to survive
+# future `tauri android init` regenerations.
 
 # Temporary API folder (auto-moved by scripts/build-static.js during Tauri static build)
 /.api-temp/
@@ -90,4 +95,24 @@ desktop.ini/frames/
 /sni-stop-test/
 /sni-stop-test2/
 /sni-stop*/
+
+# Android release signing — NEVER commit the keystore or its credentials
+/src-tauri/keystore/*.keystore
+/src-tauri/keystore/*.jks
+/src-tauri/keystore/keystore.properties
+!/src-tauri/keystore/keystore.properties.example
+
+# Generated Android project — track it, but exclude machine-specific + build output
+**/local.properties
+/src-tauri/gen/android/.gradle/
+/src-tauri/gen/android/.idea/
+/src-tauri/gen/android/.externalNativeBuild/
+/src-tauri/gen/android/app/.externalNativeBuild/
+/src-tauri/gen/android/captures/
+/src-tauri/gen/android/app/build/
+/src-tauri/gen/android/app/release/
+/src-tauri/gen/android/app/debug/
+/src-tauri/gen/android/build/
+/src-tauri/gen/android/app/.cxx/
+*.iml
 

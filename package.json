@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start -p 3000",
     "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "build:static": "node scripts/build-static.js",
     "build:web": "next build && next start -p 3000",
     "tauri": "tauri",
@@ -58,11 +61,14 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^4.1.9",
     "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }
