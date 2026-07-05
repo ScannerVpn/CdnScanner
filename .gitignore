@@ -68,6 +68,7 @@ src-tauri/Frameworks/
 
 # Build output
 /dist/
+*.apk
 # Note: src-tauri/gen/ is NOT ignored — the generated Android project at
 # src-tauri/gen/android/ is tracked. Its own .gitignore (at
 # src-tauri/gen/android/app/.gitignore) excludes the truly transient files
