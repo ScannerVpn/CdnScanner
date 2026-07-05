@@ -23,12 +23,17 @@ export async function startScan(
 ): Promise<ScanHandle> {
   const controller = new AbortController()
 
-  const resp = await fetch('/api/scanner/start', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ platformId, config, customIpList, sampleConfigText }),
-    signal: controller.signal,
-  })
+  let resp: Response
+  try {
+    resp = await fetch('/api/scanner/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platformId, config, customIpList, sampleConfigText }),
+      signal: controller.signal,
+    })
+  } catch {
+    throw new Error('سرور اسکنر در دسترس نیست — از نسخه وب استفاده کن (npm run dev)')
+  }
 
   if (!resp.ok || !resp.body) {
     let msg = 'request failed'
@@ -97,7 +102,14 @@ export async function stopScan(sessionId: string): Promise<void> {
 }
 
 export async function fetchPlatforms(): Promise<Platform[]> {
-  const r = await fetch('/api/scanner/platforms')
-  const j = await r.json()
-  return j.platforms as Platform[]
+  try {
+    const r = await fetch('/api/scanner/platforms')
+    if (!r.ok) throw new Error('API not available')
+    const j = await r.json()
+    return j.platforms as Platform[]
+  } catch {
+    // Static build (Tauri) has no API — import platforms directly
+    const { PLATFORMS } = await import('./platforms')
+    return PLATFORMS
+  }
 }
