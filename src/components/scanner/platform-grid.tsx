@@ -192,12 +192,23 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                           const totalIps = p.ranges
                             .filter(r => selectedRanges.includes(r.cidr))
                             .reduce((sum, r) => sum + cidrToIpCount(r.cidr), 0)
-                          const formatted = totalIps > 1000000
+                          const scannedIps = config.scanAllIps
+                            ? totalIps
+                            : p.ranges
+                                .filter(r => selectedRanges.includes(r.cidr))
+                                .reduce((sum, r) => sum + Math.min(config.maxIpsPerRange, cidrToIpCount(r.cidr)), 0)
+                          const fmtTotal = totalIps > 1000000
                             ? `${(totalIps / 1000000).toFixed(1)}M`
                             : totalIps > 1000
                               ? `${(totalIps / 1000).toFixed(0)}K`
                               : String(totalIps)
-                          return `فقط ${selectedCount} رنج انتخاب‌شده — ${formatted} IP`
+                          const fmtScanned = scannedIps > 1000000
+                            ? `${(scannedIps / 1000000).toFixed(1)}M`
+                            : scannedIps > 1000
+                              ? `${(scannedIps / 1000).toFixed(0)}K`
+                              : String(scannedIps)
+                          const scanNote = config.scanAllIps ? '' : ` (اسکن: ${fmtScanned})`
+                          return `${selectedCount} رنج — ${fmtTotal} IP${scanNote}`
                         })()}
                   </p>
                 </div>
