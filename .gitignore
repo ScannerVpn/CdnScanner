@@ -83,4 +83,6 @@ src-tauri/Frameworks/
 
 # OS
 Thumbs.db
-desktop.ini
+desktop.ini/frames/
+/.chrome-profile/
+/gif-check/
