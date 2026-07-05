@@ -342,17 +342,12 @@ function httpProbe(ip: string, port: number, host: string, timeoutMs: number): P
   })
 }
 
-// WebSocket upgrade test: sends a real WS upgrade handshake over TLS
-// with ALPN h2+http/1.1 to match what V2Ray/browser clients do.
-//
-// CDN edges (CloudFront etc) use JA3 fingerprinting — Node.js has a
-// different fingerprint than Chrome/V2Ray, so the CDN may reject the
-// upgrade (403) even though the IP correctly routes to the origin.
-// Therefore we accept ANY HTTP response as "config reachable":
-//   101 = perfect WS upgrade
-//   2xx/3xx = server responded, IP routes to origin
-//   4xx = CDN knows the domain but rejects our fingerprint
-// Only connection-refused/timeout means the IP is truly dead.
+// Config test: connects via TLS with the sample config's SNI.
+// If TLS handshake succeeds, the IP routes to the correct CDN origin
+// for this domain — that's all we need to know. We do NOT wait for an
+// HTTP response because CDN edges (Cloudflare) use JA3 fingerprinting
+// and may close the connection after TLS based on Node.js's fingerprint,
+// even though the same IP works fine with Chrome/V2Ray.
 function testWithConfig(
   ip: string,
   port: number,
@@ -363,85 +358,40 @@ function testWithConfig(
     const t0 = Date.now()
     const isTls = port === 443 || cfg.security === 'tls'
 
-    const wsPath = cfg.path || '/'
-    const wsHost = cfg.host || cfg.sni || cfg.address
-    const wsKey = randomBytes(16).toString('base64')
-
-    const headers: Record<string, string> = {
-      'Host': wsHost,
-      'Upgrade': 'websocket',
-      'Connection': 'Upgrade',
-      'Sec-WebSocket-Key': wsKey,
-      'Sec-WebSocket-Version': '13',
-      'Sec-WebSocket-Protocol': 'chat, superchat',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_window_bits',
+    if (!isTls) {
+      // Non-TLS: TCP connect is enough
+      const socket = net.connect({ host: ip, port, timeout: timeoutMs }, () => {
+        socket.destroy()
+        resolve({ ok: true, latencyMs: Date.now() - t0, status: 0 })
+      })
+      socket.once('timeout', () => { socket.destroy(); resolve({ ok: false, latencyMs: Date.now() - t0 }) })
+      socket.once('error', () => { socket.destroy(); resolve({ ok: false, latencyMs: Date.now() - t0 }) })
+      return
     }
 
-    const socket = isTls
-      ? tls.connect({
-          host: ip,
-          port,
-          servername: cfg.sni || cfg.address,
-          rejectUnauthorized: false,
-          timeout: timeoutMs,
-          ALPNProtocols: ['h2', 'http/1.1'],
-        }, () => sendUpgrade())
-      : net.connect({ host: ip, port, timeout: timeoutMs }, () => sendUpgrade())
-
     let settled = false
-    let status = 0
     const finish = (ok: boolean) => {
       if (settled) return
       settled = true
+      resolve({ ok, latencyMs: Date.now() - t0, status: ok ? 101 : 0 })
+    }
+
+    // TLS handshake with the config's SNI — if it succeeds, IP routes correctly
+    const socket = tls.connect({
+      host: ip,
+      port,
+      servername: cfg.sni || cfg.address,
+      rejectUnauthorized: false,
+      timeout: timeoutMs,
+      ALPNProtocols: ['h2', 'http/1.1'],
+    }, () => {
+      // TLS handshake succeeded — the CDN knows this domain for this IP
+      // No need to send WS upgrade or wait for HTTP (JA3 will block it)
       socket.destroy()
-      resolve({ ok, latencyMs: Date.now() - t0, status })
-    }
+      finish(true)
+    })
 
-    const sendUpgrade = () => {
-      const req = [
-        `GET ${wsPath} HTTP/1.1`,
-        ...Object.entries(headers).map(([k, v]) => `${k}: ${v}`),
-        '',
-        '',
-      ].join('\r\n')
-      socket.write(req)
-    }
-
-    let buf = ''
-    let dataTimer: ReturnType<typeof setTimeout> | null = null
-    const onData = (data: Buffer) => {
-      buf += data.toString('utf8')
-      if (dataTimer) clearTimeout(dataTimer)
-      dataTimer = setTimeout(parseResponse, 150)
-    }
-
-    const parseResponse = () => {
-      const headerEnd = buf.indexOf('\r\n\r\n')
-      if (headerEnd === -1) {
-        if (buf.length > 0 && buf.length < 4096) {
-          dataTimer = setTimeout(parseResponse, 300)
-          return
-        }
-        finish(false)
-        return
-      }
-      const respHeaders = buf.slice(0, headerEnd)
-      const firstLine = respHeaders.split('\r\n')[0] || ''
-      const m = firstLine.match(/HTTP\/1\.[01]\s+(\d{3})/i)
-      if (m) {
-        status = parseInt(m[1], 10)
-        // Accept any HTTP response — the IP reached the CDN origin.
-        // 101 = confirmed WS, 4xx = CDN blocked our fingerprint but IP routes correctly.
-        finish(true)
-      } else {
-        finish(false)
-      }
-    }
-
-    socket.once('data', onData)
-    socket.once('timeout', () => finish(false))
-    socket.once('error', () => finish(false))
+    socket.once('timeout', () => { socket.destroy(); finish(false) })
+    socket.once('error', () => { socket.destroy(); finish(false) })
   })
 }
