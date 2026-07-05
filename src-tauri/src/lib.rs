@@ -4,7 +4,12 @@ mod scanner;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![scanner::check_ip])
+        .invoke_handler(tauri::generate_handler![
+            scanner::check_ip,
+            scanner::start_session,
+            scanner::cancel_session,
+            scanner::end_session,
+        ])
         .setup(|_app| {
             // Static frontend is loaded automatically from `frontendDist` (../out).
             // On Android / desktop Tauri the JS layer additionally calls our

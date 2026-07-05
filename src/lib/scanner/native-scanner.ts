@@ -96,6 +96,15 @@ export async function startNativeScan(
   const startTime = Date.now()
   let cancelled = false
 
+  // Register the session with Rust so cancel_session can flip its cancel flag.
+  // Best-effort: if it fails (e.g. running in browser fallback path), the local
+  // `cancelled` flag still gates new work — only in-flight Rust calls stay alive.
+  try {
+    await invoke('start_session', { sessionId })
+  } catch (e) {
+    console.warn('[native-scanner] start_session failed:', e)
+  }
+
   cb.onSession?.(sessionId)
   cb.onProgress?.({
     total, scanned: 0, alive: 0, configOk: 0,
@@ -108,6 +117,7 @@ export async function startNativeScan(
       let res: NativeCheckResult
       try {
         res = await invoke<NativeCheckResult>('check_ip', {
+          sessionId,
           ip,
           port,
           config: {
@@ -118,7 +128,13 @@ export async function startNativeScan(
           },
         })
       } catch (e: any) {
-        res = { ok: false, latencyMs: 0, tcpOk: false, error: String(e?.message || e) }
+        const msg = String(e?.message || e)
+        // Rust explicitly cancelled this session — propagate as "no result".
+        if (/cancel/i.test(msg)) {
+          cancelled = true
+          return null
+        }
+        res = { ok: false, latencyMs: 0, tcpOk: false, error: msg }
       }
       if (!res.ok && !res.tcpOk) continue
       if (res.latencyMs > fullConfig.maxLatencyMs) continue
@@ -168,6 +184,9 @@ export async function startNativeScan(
       const r = await checkIp(ip)
       scanned++
       if (r) {
+        // Drop results that arrive after cancellation was requested, so the
+        // table doesn't keep filling up while the user is waiting for "stopped".
+        if (cancelled) break
         alive++
         cb.onResult?.(r)
       }
@@ -183,7 +202,29 @@ export async function startNativeScan(
   emitProgress(finalStatus)
   cb.onDone?.({ ok: !cancelled, alive, scanned, total, configOk: configOkCount })
 
+  // Always free the Rust-side session entry, even on natural completion.
+  try {
+    await invoke('end_session', { sessionId })
+  } catch {
+    // ignore — session may have already been removed
+  }
+
   return {
-    cancel: async () => { cancelled = true },
+    cancel: async () => {
+      if (cancelled) return
+      cancelled = true
+      // Tell Rust to abort in-flight check_ip calls (their tokio::select!
+      // branch will fire within ~50ms).
+      try {
+        await invoke('cancel_session', { sessionId })
+      } catch {
+        // ignore — best effort
+      }
+      try {
+        await invoke('end_session', { sessionId })
+      } catch {
+        // ignore
+      }
+    },
   }
 }

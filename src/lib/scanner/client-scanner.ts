@@ -261,6 +261,8 @@ export async function startClientScan(
       const r = await checkIp(ip)
       scanned++
       if (r) {
+        // Drop results that arrive after cancellation was requested.
+        if (cancelled) break
         alive++
         cb.onResult?.(r)
       }

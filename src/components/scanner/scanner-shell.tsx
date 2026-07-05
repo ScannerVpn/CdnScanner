@@ -146,7 +146,7 @@ export function ScannerShell() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="w-[92%] sm:max-w-md bg-[#0a0d12] border-white/10 text-zinc-100 p-0 gap-0 flex flex-col"
+              className="w-4/5 max-w-sm sm:max-w-md bg-[#0a0d12] border-white/10 text-zinc-100 p-0 gap-0 flex flex-col"
             >
               <SheetHeader className="border-b border-white/5 p-4 space-y-1 text-right">
                 <SheetTitle className="text-zinc-100 text-base">پلتفرم‌ها</SheetTitle>
