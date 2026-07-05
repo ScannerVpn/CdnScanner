@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     customIpList,
     selectedRanges: config.selectedRanges,
     realPing: config.realPing ?? false,
+    scanAllIps: config.scanAllIps ?? false,
     sampleConfig,
   }
 
