@@ -1,0 +1,9 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/route": "/api",
+  "/api/scanner/platforms/route": "/api/scanner/platforms",
+  "/api/scanner/start/route": "/api/scanner/start",
+  "/api/scanner/stop/route": "/api/scanner/stop",
+  "/page": "/"
+}
