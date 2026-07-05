@@ -212,7 +212,7 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                                     e.stopPropagation()
                                     useScanner.getState().updateConfig({ scanAllIps: true })
                                   }}
-                                  className="text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                                  className="text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded transition"
                                 >
                                   اسکن همه {fmt(totalIps)} IP
                                 </button>
