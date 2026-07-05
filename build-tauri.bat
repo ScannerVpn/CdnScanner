@@ -19,7 +19,7 @@ echo.
 pause
 
 echo.
-echo [1/4] Installing npm packages...
+echo [1/3] Installing npm packages...
 call npm install --no-audit --no-fund
 if errorlevel 1 (
     echo.
@@ -32,9 +32,11 @@ if errorlevel 1 (
 echo OK.
 
 echo.
-echo [2/4] Preparing static build (temporarily excluding API routes)...
-:: API routes conflict with Next.js static export.
-:: Back up the API folder, build, then restore.
+echo [2/3] Removing API routes (conflict with static export)...
+:: tauri.conf.json has beforeBuildCommand that runs build:static
+:: which does `cross-env TAURI_BUILD=true next build`.
+:: API routes with force-dynamic conflict with output:export.
+:: We MUST keep API removed during the entire tauri build.
 if exist "src\app\api" (
     if exist "src\app\_api_backup" rmdir /s /q "src\app\_api_backup"
     xcopy /s /e /q /i "src\app\api" "src\app\_api_backup\" >nul
@@ -43,30 +45,20 @@ if exist "src\app\api" (
 echo OK.
 
 echo.
-echo [3/4] Building static Next.js app...
-call npx next build
-set BUILD_RESULT=%ERRORLEVEL%
-:: Restore API folder regardless of build result
+echo [3/3] Building Windows EXE with Tauri...
+echo This runs Next.js static build + Rust compilation (5-15 min first time).
+echo.
+call npx tauri build
+set TAURI_RESULT=%ERRORLEVEL%
+
+:: Restore API folder AFTER tauri build (success or failure)
 if exist "src\app\_api_backup" (
     xcopy /s /e /q /i "src\app\_api_backup" "src\app\api\" >nul
     rmdir /s /q "src\app\_api_backup"
+    echo API routes restored.
 )
-if %BUILD_RESULT% neq 0 (
-    echo.
-    echo ERROR: Next.js static build failed.
-    echo Check the error output above.
-    echo.
-    pause
-    exit /b 1
-)
-echo OK.
 
-echo.
-echo [4/4] Building Windows EXE with Tauri...
-echo This takes 5-15 minutes the first time (Rust compilation).
-echo.
-call npx tauri build
-if errorlevel 1 (
+if %TAURI_RESULT% neq 0 (
     echo.
     echo ERROR: Tauri build failed.
     echo.
