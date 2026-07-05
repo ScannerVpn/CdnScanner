@@ -47,11 +47,29 @@ if %errorlevel% neq 0 (
     for /f "tokens=*" %%v in ('java -version 2^>^&1') do echo [java] %%v
 )
 
-if "%ANDROID_HOME%"=="" if "%ANDROID_SDK_ROOT%"=="" (
-    echo WARNING: ANDROID_HOME / ANDROID_SDK_ROOT not set.
-    echo          Tauri will look at default locations: %%LOCALAPPDATA%%\Android\Sdk
+:: Auto-detect Android SDK if neither ANDROID_HOME nor ANDROID_SDK_ROOT is set
+if "%ANDROID_HOME%%ANDROID_SDK_ROOT%"=="" goto :android_sdk_check
+goto :android_sdk_done
+
+:android_sdk_check
+if exist "%USERPROFILE%\AppData\Local\Android\Sdk" (
+    set "ANDROID_HOME=%USERPROFILE%\AppData\Local\Android\Sdk"
+)
+if exist "%LOCALAPPDATA%\Android\Sdk" (
+    if "%ANDROID_HOME%"=="" set "ANDROID_HOME=%LOCALAPPDATA%\Android\Sdk"
+)
+goto :android_sdk_done
+
+:android_sdk_done
+if defined ANDROID_HOME (
+    if exist "%ANDROID_HOME%" (
+        echo [android] SDK: %ANDROID_HOME%
+    ) else (
+        echo WARNING: ANDROID_HOME=%ANDROID_HOME% does not exist
+    )
 ) else (
-    echo [android] SDK: %ANDROID_HOME%%ANDROID_SDK_ROOT%
+    echo WARNING: ANDROID_HOME not set - tauri android init will likely fail
+    echo          Install Android Studio or set ANDROID_HOME manually.
 )
 
 :: ------------------------------------------------------------------

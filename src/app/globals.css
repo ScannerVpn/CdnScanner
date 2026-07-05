@@ -150,3 +150,61 @@ html.dark {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* ----------------------------------
+   Mobile / Tauri WebView polish
+   ---------------------------------- */
+
+/* Disable the gray tap flash on Chrome WebView (Android) + iOS Safari */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent Android WebView auto-zoom when focusing inputs: enforce 16px+ */
+html {
+  /* Allow site to scale, but keep inputs legible */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Belt-and-suspenders for inputs/textareas/selects on mobile WebView */
+input,
+textarea,
+select,
+button {
+  font-size: max(16px, 1rem);
+}
+
+/* Safe-area insets for notched devices + Tauri title-bar offset */
+.safe-top {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+.safe-bottom {
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
+}
+
+/* Scrollable TabsList (used by export dialog): hide scrollbar but allow swipe */
+.tabs-scroll {
+  -ms-overflow-style: none; /* IE/old Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.tabs-scroll::-webkit-scrollbar {
+  display: none; /* Chromium/WebKit */
+}
+
+/* Better overscroll behaviour: no bounce when scrolling inside Tabs/WebView */
+html,
+body {
+  overscroll-behavior-y: contain;
+}
+
+/* Tighter scrollbar inside the tables on mobile */
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}
+

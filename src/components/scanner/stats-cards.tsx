@@ -33,15 +33,24 @@ export function StatsCards({ progress, aliveCount, configOkCount }: StatsCardsPr
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-      {cards.map((c) => (
-        <Card key={c.label} className="border-white/5 bg-[#0f141b] p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="space-y-1 min-w-0">
-              <p className="text-[11px] uppercase tracking-wider text-zinc-500">{c.label}</p>
-              <p className={`text-2xl font-bold tabular-nums ${c.color}`}>{c.value}</p>
+    // On mobile: 2 columns. The FIRST card ('کل' Total IPs) spans both columns so the
+    // most important stat sits prominently at the top. The remaining 4 cards then lay out
+    // as a clean 2x2 grid on mobile. On md+: 5 equal columns.
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-2.5 sm:gap-3">
+      {cards.map((c, i) => (
+        <Card
+          key={c.label}
+          className={`border-white/5 bg-[#0f141b] p-3 sm:p-4 ${
+            // FIRST card on mobile: span 2 (prominent headline metric).
+            i === 0 ? 'col-span-2 md:col-span-1' : ''
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2.5 sm:gap-3">
+            <div className="space-y-0.5 sm:space-y-1 min-w-0">
+              <p className="text-[10px] sm:text-[11px] uppercase tracking-wider text-zinc-500">{c.label}</p>
+              <p className={`text-xl sm:text-2xl font-bold tabular-nums ${c.color}`}>{c.value}</p>
             </div>
-            <div className={`grid h-9 w-9 place-items-center rounded-lg ${c.bg} ring-1 ${c.ring}`}>
+            <div className={`grid h-8 w-8 sm:h-9 sm:w-9 place-items-center rounded-lg ${c.bg} ring-1 ${c.ring} shrink-0`}>
               <c.icon className={`h-4 w-4 ${c.color}`} />
             </div>
           </div>
