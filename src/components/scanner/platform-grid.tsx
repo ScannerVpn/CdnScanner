@@ -200,20 +200,26 @@ export function PlatformGrid({ platforms, selectedId, onSelect, onOpenHttpScanne
                             : p.ranges
                                 .filter(r => selectedRanges.includes(r.cidr))
                                 .reduce((sum, r) => sum + Math.min(config.maxIpsPerRange, cidrToIpCount(r.cidr)), 0)
-                          const fmtTotal = totalIps > 1000000
-                            ? `${(totalIps / 1000000).toFixed(1)}M`
-                            : totalIps > 1000
-                              ? `${(totalIps / 1000).toFixed(0)}K`
-                              : String(totalIps)
-                          const fmtScanned = scannedIps > 1000000
-                            ? `${(scannedIps / 1000000).toFixed(1)}M`
-                            : scannedIps > 1000
-                              ? `${(scannedIps / 1000).toFixed(0)}K`
-                              : String(scannedIps)
-                          const scanNote = config.scanAllIps ? '' : ` (اسکن: ${fmtScanned})`
-                          return `${selectedCount} رنج — ${fmtTotal} IP${scanNote}`
+                          const fmt = (n: number) => n > 1000000 ? `${(n / 1000000).toFixed(1)}M` : n > 1000 ? `${(n / 1000).toFixed(0)}K` : String(n)
+                          const scanNote = config.scanAllIps ? '' : ` (اسکن: ${fmt(scannedIps)})`
+                          const showAllLink = !config.scanAllIps && totalIps > scannedIps
+                          return (
+                            <>
+                              {`${selectedCount} رنج — ${fmt(totalIps)} IP${scanNote}`}
+                              {showAllLink && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    useScanner.getState().updateConfig({ scanAllIps: true })
+                                  }}
+                                  className="mr-2 text-emerald-400 hover:text-emerald-300 underline underline-offset-2"
+                                >
+                                  اسکن همه {fmt(totalIps)} IP
+                                </button>
+                              )}
+                            </>
+                          )
                         })()}
-                  </p>
                 </div>
               )}
 
